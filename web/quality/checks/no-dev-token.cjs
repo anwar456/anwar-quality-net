@@ -29,7 +29,7 @@ function walk(dir, out = []) {
 module.exports = { checkSource };
 
 if (require.main === module) {
-  const web = path.resolve(__dirname, '..', '..', 'web');
+  const web = path.resolve(__dirname, '..', '..');
   const problems = [];
   for (const f of walk(path.join(web, 'src'))) problems.push(...checkSource(fs.readFileSync(f, 'utf8'), path.relative(web, f)));
   for (const f of fs.readdirSync(web).filter((n) => /^\.env\.production/.test(n))) {

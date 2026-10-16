@@ -2,12 +2,12 @@
 'use strict';
 
 // CLI wrapper used by CI (and runnable locally):
-//   node quality/dor/run.js                       -> reads the PR from $GITHUB_EVENT_PATH
-//   node quality/dor/run.js --body pr.md --base origin/main --title "fix: x"   -> local dry run
+//   node web/quality/dor/run.cjs                       -> reads the PR from $GITHUB_EVENT_PATH
+//   node web/quality/dor/run.cjs --body pr.md --base origin/main --title "fix: x"   -> local dry run
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
-const { evaluate, renderMarkdown } = require('./check');
+const { evaluate, renderMarkdown } = require('./check.cjs');
 
 function arg(name) {
   const i = process.argv.indexOf(`--${name}`);

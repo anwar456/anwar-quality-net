@@ -20,4 +20,4 @@ jobs:
         with:
           node-version: 20
       - name: Check that the change carries its inputs
-        run: node quality/dor/run.js
+        run: node web/quality/dor/run.cjs

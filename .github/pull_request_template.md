@@ -5,7 +5,7 @@
 -->
 
 ## Spec
-<!-- The spec / PRD this change implements: a repo path (docs/specs/SPEC-00X-name.md) or a URL. -->
+<!-- The spec / PRD this change implements: a repo path (assessment/specs/SPEC-00X-name.md) or a URL. -->
 
 ## Acceptance criteria
 <!-- At least one scenario:

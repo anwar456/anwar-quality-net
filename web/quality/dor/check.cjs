@@ -8,10 +8,10 @@
 //   3. a short design / solution plan,
 //   4. tests, whenever production code changed.
 //
-// Pure function: all I/O is injected, so the gate itself is unit-tested (check.test.js).
+// Pure function: all I/O is injected, so the gate itself is unit-tested (check.test.cjs).
 
-const PRODUCTION = [/^api\/(app|config|db|lib)\//, /^web\/src\//, /^web\/public\//];
-const TESTS = [/^api\/spec\//, /^web\/src\/.*\.test\.(ts|tsx)$/, /^web\/src\/test\//];
+const PRODUCTION = [/^api\/(app|config|db|lib)\//, /^web\/src\//, /^web\/public\//, /^web\/quality\//];
+const TESTS = [/^api\/spec\//, /^web\/src\/.*\.test\.(ts|tsx)$/, /^web\/src\/test\//, /^web\/quality\/.*\.test\.cjs$/];
 const MIN_SPEC_CHARS = 200;
 const MIN_PLAN_CHARS = 120;
 const PLACEHOLDER = /^(tbd|todo|n\/?a|none|-+|\.\.\.|to be (decided|done|written))\.?$/i;
@@ -78,11 +78,11 @@ function evaluate({ title = '', body = '', changedFiles = [], readFile = () => n
   let specText = '';
   const specSection = s['spec'] || '';
   if (isPlaceholder(specSection)) {
-    failures.push('Spec: link the spec or PRD this change implements (a file under docs/specs/ or a URL).');
+    failures.push('Spec: link the spec or PRD this change implements (a file under assessment/specs/ or a URL).');
   } else {
     const ref = specReference(specSection);
     if (!ref) {
-      failures.push('Spec: could not find a link. Use a repo path like docs/specs/SPEC-001-xxx.md or an https:// URL.');
+      failures.push('Spec: could not find a link. Use a repo path like assessment/specs/SPEC-001-xxx.md or an https:// URL.');
     } else if (ref.type === 'file') {
       const content = readFile(ref.value);
       if (content === null) failures.push(`Spec: ${ref.value} does not exist in this branch.`);

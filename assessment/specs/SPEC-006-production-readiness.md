@@ -11,7 +11,7 @@ repository names the organisation that owns the exercise, its hosts and its regi
 ## Rules
 1. `rails zeitwerk:check` passes and the application boots with `RAILS_ENV=production` and only the production gem groups.
 2. No production web bundle reads `VITE_DEV_TOKEN`; it is only read behind `import.meta.env.DEV`.
-3. No tracked file or path contains an identifier from the forbidden list (stored as hashes in quality/scan/forbidden-terms.sha256).
+3. No tracked file or path contains an identifier from the forbidden list (stored as hashes in web/quality/scan/forbidden-terms.sha256).
 
 ## Acceptance criteria
 Given the production gem groups and production settings
@@ -30,4 +30,4 @@ Then it reports no forbidden identifier.
 Secret management of the real deployment (Kubernetes Secrets are owned by the platform team).
 
 ## Checks
-api/spec/critical/boot_spec.rb, CI job "API boots in production mode", quality/checks/no-dev-token.js, quality/scan/identifiers.js
+api/spec/critical/boot_spec.rb, CI job "API boots in production mode", web/quality/checks/no-dev-token.cjs, web/quality/scan/identifiers.cjs

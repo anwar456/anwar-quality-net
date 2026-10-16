@@ -3,16 +3,16 @@
 Ringkas: dua bagian yang saling menutup. **Gate workflow** memastikan sebuah perubahan tidak bisa maju tanpa inputnya
 (spec, acceptance criteria, rencana desain, tes). **Jaring tes/CI** memastikan perubahan yang sudah punya input tidak
 merusak jalur kritis. Setiap check kecil, melindungi satu kelas kegagalan yang nyata, dan menyebut apa yang sengaja tidak
-dicakupnya. Panduan menjalankan dan memperluas ada di `quality/README.md`.
+dicakupnya. Panduan menjalankan dan memperluas ada di `assessment/quality-net-README.md`.
 
 ## 1. Gate workflow: Definition of Ready / Done
 
 | Bagian | Isi |
 |---|---|
 | Template PR | `.github/pull_request_template.md`: *Spec*, *Acceptance criteria*, *Design plan*, *Tests*, *Audit items* |
-| Pemeriksa | `quality/dor/check.js` (fungsi murni, tanpa dependensi) dan pembungkusnya `run.js`; dijalankan oleh `.github/workflows/dor-gate.yml` pada `opened/edited/synchronize/reopened` |
-| Spec di repo | `docs/specs/SPEC-001..006` (enam spec, semuanya punya skenario Given/When/Then), templat `_template.md` |
-| Keterlacakan | `docs/traceability.md` + `quality/checks/traceability.js`: setiap P0/P1 di audit punya spec dan check, atau celah yang diungkap dengan alasan |
+| Pemeriksa | `web/quality/dor/check.cjs` (fungsi murni, tanpa dependensi) dan pembungkusnya `run.cjs`; dijalankan oleh `.github/workflows/dor-gate.yml` pada `opened/edited/synchronize/reopened` |
+| Spec di repo | `assessment/specs/SPEC-001..006` (enam spec, semuanya punya skenario Given/When/Then), templat `_template.md` |
+| Keterlacakan | `assessment/traceability.md` + `web/quality/checks/traceability.cjs`: setiap P0/P1 di audit punya spec dan check, atau celah yang diungkap dengan alasan |
 
 **Aturan yang memblokir** (pesan galatnya menyebut apa yang kurang):
 
@@ -24,7 +24,7 @@ dicakupnya. Panduan menjalankan dan memperluas ada di `quality/README.md`.
 Sengaja tidak memblokir (hanya catatan): PR `fix/feat` yang tidak menyebut ID temuan audit. Alasannya: gate yang menghukum
 hal kecil cepat berubah menjadi birokrasi dan orang belajar mengisi asal.
 
-Gate-nya sendiri dites: `quality/dor/check.test.js` (12 kasus: lolos, tanpa spec, spec tidak ada, spec stub, tanpa AC,
+Gate-nya sendiri dites: `web/quality/dor/check.test.cjs` (12 kasus: lolos, tanpa spec, spec tidak ada, spec stub, tanpa AC,
 AC di spec, rencana placeholder, kode produksi tanpa tes, web tanpa tes, perubahan dokumen, template kosong).
 Peragaan lokal: PR yang mengubah controller dengan template kosong ⇒ **BLOCKED** (4 alasan);
 PR yang sama dengan spec, rencana, dan tes ⇒ **PASSED**. Dua PR sungguhan (satu diblokir, satu lolos) dibuat di repo GitHub
@@ -37,7 +37,7 @@ bila semua job hijau.
 
 | Job | Menjalankan | Melindungi (audit) |
 |---|---|---|
-| Gate scripts + scan | `node --test quality/`, traceability, pemindaian identifier | gate itu sendiri; R-28; hilangnya temuan |
+| Gate scripts + scan | `node --test web/quality/`, traceability, pemindaian identifier | gate itu sendiri; R-28; hilangnya temuan |
 | API — critical path | `rspec --tag critical` (31 contoh) | R-01, R-02, R-04, R-05, R-06, R-07, R-09, R-10, R-11, R-31 |
 | API — contract | `rspec --tag ~critical` (59 contoh) + dokumen OpenAPI tidak basi | bentuk 32 operasi API; R-03/R-08 sisi API |
 | API boots in production mode | `rails zeitwerk:check` + boot dengan `RAILS_ENV=production` dan hanya gem produksi | R-31 |

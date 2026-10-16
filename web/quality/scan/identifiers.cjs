@@ -4,8 +4,8 @@
 // Confidentiality gate: fails when a tracked file (or its path) contains an identifier from the forbidden list
 // (company, product or client names). The list holds SHA-256 hashes, so the names are not written in the repo.
 //
-//   node quality/scan/identifiers.js            scan every git-tracked file
-//   node quality/scan/identifiers.js --hash x   print the line to add for term "x"
+//   node web/quality/scan/identifiers.cjs            scan every git-tracked file
+//   node web/quality/scan/identifiers.cjs --hash x   print the line to add for term "x"
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
@@ -64,7 +64,7 @@ if (require.main === module) {
     console.log(sha(String(process.argv[3] || '')));
     process.exit(0);
   }
-  const root = path.resolve(__dirname, '..', '..');
+  const root = path.resolve(__dirname, '..', '..', '..');
   const hashes = loadHashes(path.join(__dirname, 'forbidden-terms.sha256'));
   const findings = scanRepo(root, hashes);
   if (findings.length === 0) {

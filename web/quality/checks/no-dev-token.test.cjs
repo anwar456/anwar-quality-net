@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { checkSource } = require('./no-dev-token');
+const { checkSource } = require('./no-dev-token.cjs');
 
 test('flags an unguarded read of the dev token', () => {
   const p = checkSource('return localStorage.getItem(K) ?? import.meta.env.VITE_DEV_TOKEN ?? null;', 'authAtom.ts');

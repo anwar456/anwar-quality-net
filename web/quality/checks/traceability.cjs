@@ -34,7 +34,7 @@ function evaluate({ auditText, traceText, exists }) {
   for (const id of severeAuditIds(auditText)) {
     const row = rows[id];
     if (!row) {
-      problems.push(`${id}: P0/P1 in the audit but missing from docs/traceability.md`);
+      problems.push(`${id}: P0/P1 in the audit but missing from assessment/traceability.md`);
       continue;
     }
     if (!exists(row.spec)) problems.push(`${id}: spec ${row.spec} does not exist`);
@@ -50,11 +50,11 @@ function evaluate({ auditText, traceText, exists }) {
 module.exports = { evaluate, severeAuditIds, parseTraceability };
 
 if (require.main === module) {
-  const root = path.resolve(__dirname, '..', '..');
+  const root = path.resolve(__dirname, '..', '..', '..');
   const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
   const problems = evaluate({
     auditText: read('assessment/01-audit.md'),
-    traceText: read('docs/traceability.md'),
+    traceText: read('assessment/traceability.md'),
     exists: (p) => fs.existsSync(path.join(root, p)),
   });
   if (problems.length) {

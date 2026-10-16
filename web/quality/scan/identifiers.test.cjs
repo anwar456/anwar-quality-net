@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { scanText, sha } = require('./identifiers');
+const { scanText, sha } = require('./identifiers.cjs');
 
 const hashes = new Set([sha('acme'), sha('acmedev')]);
 

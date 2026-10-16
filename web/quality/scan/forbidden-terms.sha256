@@ -1,5 +1,5 @@
 # SHA-256 of lower-cased identifiers that must never appear in this repository (company, product, client names).
-# Stored as hashes so the list itself does not leak them. Add one with:  node quality/scan/identifiers.js --hash <term>
+# Stored as hashes so the list itself does not leak them. Add one with:  node web/quality/scan/identifiers.cjs --hash <term>
 7704d9bef76cf1a7463e7ee53ab63361b86557c9cb39a63f2e220b468a81bcc1
 3a031d429980dba4cf3052d70593ec52c7a30ebf513e58a81a90d9710e4e212e
 60280e12933862e2f1552575bcce9c74a7890c9f3148c031237651eb5d5a1a71

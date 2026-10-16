@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { evaluate, severeAuditIds } = require('./traceability');
+const { evaluate, severeAuditIds } = require('./traceability.cjs');
 
 const audit = ['### P0 - blocker', '| R-31 | BW | x |', '### P1 - major', '| R-01 | BW | y |', '| R-02 | BW | z |', '### P2 - minor', '| R-16 | BW | w |'].join('\n');
 const trace = (rows) => ['| Audit | Sev | Spec | Check | Status |', '|---|---|---|---|---|', ...rows].join('\n');

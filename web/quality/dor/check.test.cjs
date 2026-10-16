@@ -2,14 +2,14 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { evaluate, sections, specReference } = require('./check');
+const { evaluate, sections, specReference } = require('./check.cjs');
 
 const SPEC = `# Spec\n${'A real spec has real content. '.repeat(12)}\nGiven a signed-in assessor\nWhen they open another tenant's portfolio\nThen they get 404.`;
-const files = { 'docs/specs/SPEC-001-tenancy.md': SPEC, 'docs/specs/stub.md': '# todo' };
+const files = { 'assessment/specs/SPEC-001-tenancy.md': SPEC, 'assessment/specs/stub.md': '# todo' };
 const readFile = (p) => (p in files ? files[p] : null);
 
 const goodBody = `## Spec
-docs/specs/SPEC-001-tenancy.md
+assessment/specs/SPEC-001-tenancy.md
 
 ## Acceptance criteria
 Given an assessor of tenant A
@@ -32,7 +32,7 @@ test('a change that carries all its inputs passes', () => {
 });
 
 test('BLOCKS a change with no spec', () => {
-  const body = goodBody.replace('docs/specs/SPEC-001-tenancy.md', 'TBD');
+  const body = goodBody.replace('assessment/specs/SPEC-001-tenancy.md', 'TBD');
   const r = evaluate({ title: 'fix: x', body, changedFiles: withTests, readFile });
   assert.equal(r.ok, false);
   assert.match(r.failures.join('\n'), /Spec:/);
@@ -100,4 +100,11 @@ test('helpers', () => {
   assert.deepEqual(Object.keys(sections('## A\nx\n## B\ny')), ['a', 'b']);
   assert.deepEqual(specReference('see https://example.test/spec).'), { type: 'url', value: 'https://example.test/spec' });
   assert.equal(specReference('nothing here'), null);
+});
+
+test('the gate scripts are code: changing them needs a test change too', () => {
+  const blocked = evaluate({ title: 'chore: x', body: goodBody, changedFiles: ['web/quality/dor/check.cjs'], readFile });
+  assert.match(blocked.failures.join('\n'), /Tests:/);
+  const ok = evaluate({ title: 'chore: x', body: goodBody, changedFiles: ['web/quality/dor/check.cjs', 'web/quality/dor/check.test.cjs'], readFile });
+  assert.equal(ok.ok, true, ok.failures.join('\n'));
 });
