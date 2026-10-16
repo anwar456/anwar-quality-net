@@ -1,6 +1,12 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
+  # Swagger UI + OpenAPI document. Gems live in the dev/test group only, so this is absent in production.
+  if defined?(Rswag::Ui)
+    mount Rswag::Ui::Engine => '/api-docs'
+    mount Rswag::Api::Engine => '/api-docs'
+  end
+
   get '/health', to: proc { [200, {}, [{ status: 'ok' }.to_json]] }
 
   namespace :api do

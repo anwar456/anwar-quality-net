@@ -49,6 +49,11 @@ group :development, :test do
   gem 'faker'
   gem 'pry-rails'
   gem 'rspec-rails', '~> 6.0'
+
+  # API contract: specs double as OpenAPI docs (swagger UI at /api-docs, dev/test only)
+  gem 'rswag-api', '~> 2.16'
+  gem 'rswag-specs', '~> 2.16'
+  gem 'rswag-ui', '~> 2.16'
 end
 
 group :development do

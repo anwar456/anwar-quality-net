@@ -8,9 +8,9 @@ Rails.application.configure do
   # While tests run files are not watched, reloading is not necessary.
   config.cache_classes = true
 
-  # Eager loading loads your whole application. When running a single test locally,
-  # this might not be necessary. It's recommended that you set this to true in CI though.
-  config.eager_load = ENV["CI"].present?
+  # Eager loading is off for the unit/request specs so one load error does not hide every other result.
+  # It is exercised on purpose by spec/critical/boot_spec.rb and by the production boot step in CI.
+  config.eager_load = ENV["EAGER_LOAD"] == "true"
 
   # Configure public file server for tests with Cache-Control for performance.
   config.public_file_server.enabled = true
