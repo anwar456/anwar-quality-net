@@ -17,3 +17,7 @@ web/.vite/
 
 # OS
 .DS_Store
+
+# Local-only dev tooling and secrets (never commit)
+dev-local/
+api/config/initializers/zz_deepseek_override.rb
