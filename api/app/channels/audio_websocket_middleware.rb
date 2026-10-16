@@ -10,6 +10,7 @@ class AudioWebsocketMiddleware
   MAX_RECONNECT_ATTEMPTS = 3
   RECONNECT_BACKOFF = [1, 2, 4].freeze
   BROWSER_GRACE_PERIOD = 120 # seconds to keep Gemini alive after browser disconnects
+  STATUS_WATCH_INTERVAL = 3  # seconds between checks whether someone else ended the session
   PROACTIVE_RECONNECT_AFTER = ENV.fetch('PROACTIVE_RECONNECT_AFTER', 510).to_i
   PROACTIVE_RECONNECT_JITTER = 30  # randomise to avoid thundering herd
 
@@ -56,6 +57,7 @@ class AudioWebsocketMiddleware
     end
 
     state.session = session
+    start_status_watch(browser_ws, state)
     connect_to_gemini(browser_ws, state)
   rescue StandardError => e
     Rails.logger.error("[AudioWS] Exception in on:open: #{e.class}: #{e.message}\n#{e.backtrace.first(5).join("\n")}")
@@ -94,6 +96,7 @@ class AudioWebsocketMiddleware
     Rails.logger.info("[AudioWS] Browser disconnected: session=#{session_id} code=#{event.code}")
     state.browser_disconnected_at = Time.current
     state.proactive_reconnect_timer&.cancel
+    state.status_watch_timer&.cancel
 
     # Keep Gemini alive during grace period in case candidate reconnects via page refresh.
     schedule_graceful_end(browser_ws, state)
@@ -431,6 +434,8 @@ class AudioWebsocketMiddleware
       state.graceful_end_timer&.cancel
       state.time_ceiling_timer&.cancel
       state.coverage_end_timer&.cancel
+      state.status_watch_timer&.cancel
+      state.end_notified = true
       Sessions::EndHandler.new(state.session).call(reason: 'manual_candidate')
       send_json(browser_ws, type: 'session_ended', reason: 'manual_candidate')
       state.gemini_client&.close
@@ -519,6 +524,8 @@ class AudioWebsocketMiddleware
   # Sends session_ended then closes both connections; 300ms delay lets the frontend process the JSON
   # before the close event fires, otherwise it shows the reconnection UI instead of the complete screen.
   def close_session_after_end(browser_ws, state, reason:)
+    state.end_notified = true
+    state.status_watch_timer&.cancel
     EM.schedule do
       send_json(browser_ws, type: 'session_ended', reason: reason)
       state.gemini_client&.close
@@ -530,6 +537,32 @@ class AudioWebsocketMiddleware
         end
       end
     end
+  end
+
+  # Someone other than this connection can end the session: an assessor from the dashboard, a job. The live
+  # connection must follow (audit R-12), otherwise the candidate keeps talking to an interviewer whose session
+  # is over, turns keep landing after the portfolio started generating, and the model connection keeps running.
+  def start_status_watch(browser_ws, state)
+    state.status_watch_timer = EM::PeriodicTimer.new(STATUS_WATCH_INTERVAL) do
+      # The database call stays off the event-loop thread, like every other query in this file.
+      Thread.new do
+        ActiveRecord::Base.connection_pool.with_connection { check_session_status(browser_ws, state) }
+      rescue StandardError => e
+        Rails.logger.error("[AudioWS] Thread crashed (status watch): #{e.class}: #{e.message}")
+      end
+    end
+  end
+
+  # Reads the row (not the copy held by this connection, which is stale) and, if the session has been ended by
+  # someone else, tells the browser and closes both connections. Says it once.
+  def check_session_status(browser_ws, state)
+    return if state.end_notified || state.session.nil?
+
+    status, end_reason = Session.unscoped.where(id: state.session.id).pick(:status, :end_reason)
+    return unless status == 'ended'
+
+    Rails.logger.info("[AudioWS] Session #{state.session.id} was ended elsewhere (#{end_reason}) - closing the live connection")
+    close_session_after_end(browser_ws, state, reason: end_reason || 'manual_assessor')
   end
 
   # Only flags pending — actual injection always deferred to handle_coverage_auto_end at a turn-safe point,
@@ -783,7 +816,8 @@ class AudioWebsocketMiddleware
                   :graceful_end_timer, :time_ceiling_timer,
                   :coverage_end_timer, :coverage_pending,
                   :last_ai_turn_ends_with_question, :wrap_up_injected,
-                  :waiting_for_candidate_response
+                  :waiting_for_candidate_response,
+                  :status_watch_timer, :end_notified
 
     def initialize
       @turn_counter = 0

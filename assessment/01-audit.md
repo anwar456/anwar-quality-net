@@ -136,7 +136,7 @@ Temuan P2/P3 boleh ikut rilis bila dicantumkan di release notes beserta pemilikn
 ## 8. Status akhir
 
 Diperbarui 16 Okt 2026. "Bukti" = commit; check yang menjaganya ada di `assessment/traceability.md`.
-Semua check CI hijau pada commit terakhir (lihat `03-release-decision.md` untuk keputusan rilis).
+Semua check CI hijau pada commit terakhir (lihat `03-release-decision.md` untuk keputusan rilis). P1 yang tersisa: hanya R-15 (dimitigasi, bukan tuntas).
 
 ### P0 dan P1
 
@@ -154,7 +154,7 @@ Semua check CI hijau pada commit terakhir (lihat `03-release-decision.md` untuk 
 | R-09 | **fixed** | `726346e` | 409 bila sesi belum aktif atau coverage belum lengkap. Lihat catatan label `all_covered` di SPEC-003 |
 | R-10 | **fixed** | `726346e` | 409 dengan alasan; pengaman yang sama di vacancy |
 | R-11 | **dimitigasi** | `af849b9` | Kehilangan transkrip kini **terdeteksi** sebelum menilai (turn bolong atau kosong ⇒ portfolio gagal, tidak ada rating). Jalur tulis di middleware WebSocket masih hanya mencatat error ke log. Tindak lanjut: retry dan penanda pada sesi |
-| R-12 | **tersisa (disengaja)** | — | Assessor mengakhiri sesi, tetapi stream audio kandidat masih hidup. Mitigasi yang sudah ada: batas waktu sesi dan grace period 120 detik setelah tab ditutup membatasi paparan. Perlu perbaikan di middleware audio (berlangganan kanal status sesi dan menutup socket) **beserta tes tingkat socket**; tanpa tes itu saya tidak mengubah kode yang mengatur audio langsung. Pemilik dan tenggat: lihat `03-release-decision.md` |
+| R-12 | **fixed** (diverifikasi dengan socket palsu) | commit "fix(api): the live audio connection follows the session (R-12)" | Middleware audio memeriksa baris sesi setiap 3 detik (di luar thread event loop); bila sudah `ended` oleh pihak lain, browser diberi `session_ended` dengan alasan yang tercatat, lalu koneksi browser dan model ditutup, sekali saja. **Batas pembuktian:** logika middleware diuji dengan socket dan koneksi model palsu; belum diuji lewat WebSocket sungguhan dan Gemini Live. Itu tetap risiko yang diungkap di keputusan rilis |
 | R-13 | **fixed** | `d01873a`, `085f552` | Token dev hanya di build dev **dan** build produksi menolak berjalan bila `VITE_DEV_TOKEN` terisi; `rails users:create_admin` untuk assessor pertama |
 | R-14 | **fixed** | `085f552` | Cek mengukur ke API sendiri, gagal tertutup; endpoint download baru dengan batas 2 MB dan rate limit |
 | R-15 | **dimitigasi** | `2852812` | Kini ada 8 spec tertulis dengan Given/When/Then dan matriks keterlacakan, dan gate DoR memaksa spec untuk perubahan berikutnya. **Tersisa:** PRD asli hanya ada di wiki pemilik (tidak disalin ke repo ini), dan belum ada spec untuk consent kandidat, retensi rekaman/transkrip, serta NFR. Itu keputusan produk, bukan keputusan engineering |
@@ -164,7 +164,7 @@ Semua check CI hijau pada commit terakhir (lihat `03-release-decision.md` untuk 
 
 | ID | Status | Catatan |
 |---|---|---|
-| R-27 | **fixed** | Ada tes (107 contoh API, 12 web, 28 skrip), CI, dan gate. Lockfile web di-commit |
+| R-27 | **fixed** | Ada tes (111 contoh API, 12 web, 28 skrip), CI, dan gate. Lockfile web di-commit |
 | R-28 | **fixed** | `315fa9e`. Pemindai bersih (3 identifier terlarang). **Tersisa:** commit pertama riwayat ini adalah impor asli yang diminta brief dan masih memuat nama asli; istilah deskriptif "AI interview" tidak ada di daftar terlarang (keputusan pemilik repo) |
 | R-26 | sebagian | Lockfile web di-commit; image k8s memakai placeholder tag, bukan `:latest`. Tersisa: Rails 7.0/Puma 5.6 EOL, Dockerfile berjalan sebagai root tanpa `.dockerignore`, manifest tanpa `Secret`, Sidekiq `-e staging` |
 | R-17, R-18, R-19, R-20, R-21, R-22, R-23, R-24, R-25, R-29, R-30 | tersisa (disengaja) | Tidak memblokir fungsi utama dan datanya benar. Diurutkan berdasarkan dampak untuk iterasi berikutnya: R-19 (peran di WebSocket) dan R-20 (token undangan tidak kedaluwarsa) lebih dulu, lalu R-17/R-18 (batas waktu, `end_reason`), sisanya. R-21 (discovered skill memblokir `all_covered`) dan R-22 (regenerasi fit/gap) memengaruhi pengalaman, bukan integritas data |
@@ -173,4 +173,5 @@ Semua check CI hijau pada commit terakhir (lihat `03-release-decision.md` untuk 
 
 - Kesimpulan awal "tidak ada P0" **salah**; boot produksi baru dicoba setelah aplikasi bisa dijalankan (R-31).
 - R-16 saya nilai P2 dari membaca kode; setelah dibuktikan, P1.
+- R-12 semula saya biarkan terbuka karena menyentuh kode audio langsung tanpa tes; setelah ada cara menguji logikanya tanpa socket sungguhan (kelas `FakeSocket`), saya memperbaikinya.
 - Dugaan "frame WebSocket biner" dan "end_session pada socket tanpa autentikasi" **belum dibuktikan maupun dicabut**; perlu tes tingkat socket.

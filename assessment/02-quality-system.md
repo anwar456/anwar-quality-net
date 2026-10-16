@@ -38,7 +38,7 @@ bila semua job hijau.
 | Job | Menjalankan | Melindungi (audit) |
 |---|---|---|
 | Gate scripts + scan | `node --test web/quality/` (28 tes), lint workflow, traceability, pemindaian identifier | gate itu sendiri; R-28; hilangnya temuan |
-| API — critical path | `rspec --tag critical` (41 contoh) | R-01, R-02, R-04, R-05, R-06, R-07, R-09, R-10, R-11, R-13, R-31 |
+| API — critical path | `rspec --tag critical` (45 contoh) | R-01, R-02, R-04, R-05, R-06, R-07, R-09, R-10, R-11, R-12, R-13, R-31 |
 | API — contract | `rspec --tag ~critical` (66 contoh) + dokumen OpenAPI tidak basi | bentuk 32 operasi API; R-03/R-08 sisi API |
 | API boots in production mode | `rails zeitwerk:check` + boot dengan `RAILS_ENV=production` dan hanya gem produksi | R-31 |
 | Web | cek token dev, build produksi dengan token harus **ditolak**, `tsc --noEmit`, `vitest` (12 tes), `vite build` | R-03, R-08, R-13, R-14 |
@@ -128,4 +128,4 @@ Dua catatan jujur tentang tabel itu:
 
 ### Yang masih merah atau tersisa, dengan sengaja
 
-Lihat `01-audit.md` bagian 8: R-12 (stream audio tidak berhenti saat assessor mengakhiri sesi) adalah satu-satunya P1 yang tersisa tanpa perbaikan, dan R-15 dimitigasi tetapi bukan tuntas. Tidak ada check yang dibuat hijau dengan menyembunyikan keduanya: R-12 tercatat di `traceability.md` sebagai celah yang diungkap.
+Lihat `01-audit.md` bagian 8. R-12 (stream audio tidak berhenti saat assessor mengakhiri sesi) diperbaiki belakangan, dengan tes terhadap socket palsu: logika middleware terbukti, tetapi **belum diuji lewat WebSocket dan Gemini Live sungguhan**. R-15 dimitigasi, bukan tuntas. Keduanya diungkap di `traceability.md` dan di keputusan rilis.

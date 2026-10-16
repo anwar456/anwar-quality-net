@@ -17,7 +17,7 @@ A check cell is either a file that exists, or `none: <reason>`, which is a discl
 | R-09 | P1 | assessment/specs/SPEC-003-coverage-and-session-lifecycle.md | api/spec/critical/session_lifecycle_spec.rb | fixed |
 | R-10 | P1 | assessment/specs/SPEC-004-data-integrity-crud.md | api/spec/critical/session_lifecycle_spec.rb | fixed |
 | R-11 | P1 | assessment/specs/SPEC-002-portfolio-integrity.md | api/spec/critical/portfolio_generation_spec.rb | fixed |
-| R-12 | P1 | assessment/specs/SPEC-003-coverage-and-session-lifecycle.md | none: needs a socket-level integration test (live audio); owner to assign | open, disclosed |
+| R-12 | P1 | assessment/specs/SPEC-003-coverage-and-session-lifecycle.md | api/spec/critical/live_session_spec.rb | fixed (fake socket; not verified end to end) |
 | R-13 | P1 | assessment/specs/SPEC-006-production-readiness.md | api/spec/tasks/create_admin_task_spec.rb | fixed |
 | R-14 | P1 | assessment/specs/SPEC-007-candidate-hardware-check.md | web/src/utils/internetSpeedTest.test.ts | fixed |
 | R-15 | P1 | assessment/specs/_template.md | web/quality/dor/check.cjs | mitigated by the gate (specs now exist for R-01..R-13) |
