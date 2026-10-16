@@ -23,6 +23,8 @@ jobs:
           node-version: 20
       - name: The gate checks are themselves tested
         run: node --test web/quality/
+      - name: Workflow files do not hide a command behind a YAML comment
+        run: node web/quality/checks/workflow-lint.cjs
       - name: Every P0/P1 audit item is traced to a spec and a check
         if: ${{ !cancelled() }}
         run: node web/quality/checks/traceability.cjs
@@ -129,7 +131,8 @@ jobs:
         run: bundle exec rails zeitwerk:check
       - name: The app loads with production settings
         if: ${{ !cancelled() }}
-        run: bundle exec rails runner 'Rails.application.eager_load!; puts "booted in #{Rails.env}"'
+        run: |
+          bundle exec rails runner 'Rails.application.eager_load!; puts "booted in #{Rails.env}"'
 
   web:
     name: Web - types, tests, build
