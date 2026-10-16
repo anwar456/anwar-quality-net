@@ -276,8 +276,7 @@ components:
           type: string
         invite_url:
           type: string
-          description: Built from APP_BASE_URL, which currently is the API host (audit
-            R-07).
+          description: WEB_BASE_URL + /interview/<token>.
         status:
           type: string
           enum:
@@ -784,9 +783,8 @@ paths:
       summary: Delete an assessment
       tags:
       - Assessments
-      description: 'Known defect (audit R-10): when the assessment already has sessions
-        the delete is refused by the model, but the API still answers 200 "Assessment
-        deleted". Intended: 409.'
+      description: 'An assessment that already has candidate sessions cannot be deleted:
+        the answer is 409 and the assessment is kept.'
       security:
       - bearer_auth: []
       responses:
@@ -796,6 +794,12 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/Message"
+        '409':
+          description: 'refused: the assessment has candidate sessions'
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
   "/api/v1/auth/login":
     post:
       summary: Log in an assessor
@@ -1273,9 +1277,8 @@ paths:
       summary: Invite a candidate (create a session)
       tags:
       - Sessions
-      description: 'Returns the invite link. Known defect (audit R-07): the link is
-        built from `APP_BASE_URL`, which is the API host, while the interview page
-        is served by the web app.'
+      description: 'Returns the invite link: `WEB_BASE_URL/interview/<token>`, the
+        page served by the web app.'
       security:
       - bearer_auth: []
       parameters: []
@@ -1530,9 +1533,10 @@ paths:
       summary: 'Candidate: the closing audio finished playing, end the session'
       tags:
       - Candidate
-      description: 'No authentication and no state check: it ends a session in any
-        state with `end_reason=all_covered` and queues portfolio generation (audit
-        R-09).'
+      description: 'No login: the invite token is the only credential, so it only
+        confirms what is true. It ends a session that is active and whose configured
+        skills are all covered (`end_reason=all_covered`); a session that has not
+        started, or has open skills, answers 409 and is left alone.'
       responses:
         '200':
           description: ended (idempotent)
@@ -1548,6 +1552,12 @@ paths:
                     type: boolean
                   message:
                     type: string
+        '409':
+          description: not started, or coverage is not complete
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
         '404':
           description: unknown token
           content:

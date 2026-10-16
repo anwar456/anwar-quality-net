@@ -147,8 +147,8 @@ RSpec.describe 'Assessments' do
 
     delete 'Delete an assessment' do
       tags 'Assessments'
-      description 'Known defect (audit R-10): when the assessment already has sessions the delete is refused by the model, ' \
-                  'but the API still answers 200 "Assessment deleted". Intended: 409.'
+      description 'An assessment that already has candidate sessions cannot be deleted: the answer is 409 and the ' \
+                  'assessment is kept.'
       security [bearer_auth: []]
       produces 'application/json'
 
@@ -156,6 +156,14 @@ RSpec.describe 'Assessments' do
         schema '$ref' => '#/components/schemas/Message'
         let(:id) { create_assessment(org).id }
         run_test! { expect(Assessment.unscoped.exists?(id)).to be(false) }
+      end
+
+      response '409', 'refused: the assessment has candidate sessions' do
+        schema '$ref' => '#/components/schemas/Error'
+        let(:assessment) { create_assessment(org) }
+        let(:id) { assessment.id }
+        before { create_interview(assessment) }
+        run_test! { expect(Assessment.unscoped.exists?(id)).to be(true) }
       end
     end
   end

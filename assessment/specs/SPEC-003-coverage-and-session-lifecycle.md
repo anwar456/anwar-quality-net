@@ -11,6 +11,7 @@ Partial skills are promoted to "covered" once probe_count reaches 4 without any 
 ## Rules
 1. A skill becomes covered only through the analyzer's decision, subject to the state machine (forward only, two probes before leaving "initiated"). No job promotes a skill by counting probes alone.
 2. `POST /sessions/:token/audio_complete` ends a session only if it is active and every configured skill is covered; otherwise it answers 409 and changes nothing. Ending an already ended session stays idempotent (200).
+   Known gap: when the live socket closes the interview on its own (the AI said goodbye early), it still ends the session itself after its 30-second poll and records `all_covered`. That label can be wrong (audit R-18, follow-up).
 3. `end_reason` states what actually happened.
 
 ## Acceptance criteria

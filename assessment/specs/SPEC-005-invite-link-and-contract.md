@@ -9,7 +9,7 @@ candidate receives is dead. The fit/gap table reads `required_level` while the A
 required level is blank on every row.
 
 ## Rules
-1. The invite URL is `WEB_BASE_URL + /interview/:token`. `WEB_BASE_URL` is a separate setting from `APP_BASE_URL` (the API origin) and is required in production.
+1. The invite URL is `WEB_BASE_URL + /interview/:token`. `WEB_BASE_URL` is a separate setting from `APP_BASE_URL` (the API origin). In production the app refuses to boot when it is missing, is not an http(s) URL, or is the same origin as `APP_BASE_URL`.
 2. The OpenAPI document (`api/swagger/v1/swagger.yaml`) is generated from the request specs and is the contract between the two services; CI fails if it is stale.
 3. A web component that renders an API response is tested with a body generated from that contract, not with a hand-written fixture.
 

@@ -127,7 +127,7 @@ RSpec.configure do |config|
               id: { type: :integer }, assessment_id: { type: :integer }, tenant_id: { type: :integer },
               candidate_id: { type: :integer, nullable: true }, candidate_name: { type: :string, nullable: true },
               invite_token: { type: :string },
-              invite_url: { type: :string, description: 'Built from APP_BASE_URL, which currently is the API host (audit R-07).' },
+              invite_url: { type: :string, description: 'WEB_BASE_URL + /interview/<token>.' },
               status: { type: :string, enum: %w[pending active ended failed] },
               end_reason: { type: :string, nullable: true,
                             enum: ['manual_candidate', 'manual_assessor', 'all_covered', 'time_ceiling', 'error', nil] },

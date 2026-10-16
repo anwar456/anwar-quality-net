@@ -121,9 +121,12 @@ module Api
 
         return json_response(ended: true, message: "Session already ended") if session.ended?
 
-        # No coverage re-check here. The backend WS already verified all_covered
-        # before sending preparing_to_end. Re-checking here caused false negatives
-        # (timing gap between WS detection and HTTP call) that stalled auto-end.
+        # This endpoint has no login: the invite token is all a caller has. So it may only confirm what is true
+        # (SPEC-003): the session is running and every configured skill is covered. Anything else is a conflict,
+        # not a reason to end the interview and record it as completed.
+        return json_error("Session has not started", :conflict) unless session.active?
+        return json_error("Coverage is not complete", :conflict) unless session.all_configured_covered?
+
         Sessions::EndHandler.new(session).call(reason: 'all_covered')
         json_response(ended: true, message: "Session ended")
       end

@@ -33,8 +33,7 @@ RSpec.describe 'Sessions' do
 
     post 'Invite a candidate (create a session)' do
       tags 'Sessions'
-      description 'Returns the invite link. Known defect (audit R-07): the link is built from `APP_BASE_URL`, ' \
-                  'which is the API host, while the interview page is served by the web app.'
+      description 'Returns the invite link: `WEB_BASE_URL/interview/<token>`, the page served by the web app.'
       security [bearer_auth: []]
       consumes 'application/json'
       produces 'application/json'
@@ -222,19 +221,27 @@ RSpec.describe 'Sessions' do
 
     post 'Candidate: the closing audio finished playing, end the session' do
       tags 'Candidate'
-      description 'No authentication and no state check: it ends a session in any state with `end_reason=all_covered` ' \
-                  'and queues portfolio generation (audit R-09).'
+      description 'No login: the invite token is the only credential, so it only confirms what is true. It ends a ' \
+                  'session that is active and whose configured skills are all covered (`end_reason=all_covered`); ' \
+                  'a session that has not started, or has open skills, answers 409 and is left alone.'
       produces 'application/json'
 
       response '200', 'ended (idempotent)' do
         schema type: :object, required: %w[ended message], properties: { ended: { type: :boolean }, message: { type: :string } }
         let(:session) { create_interview(assessment, status: 'active') }
         let(:token) { session.invite_token }
+        before { create_coverage(session, skill_id: 'SK-TEST-001', label: 'Test Skill', state: 'covered', probe_count: 3) }
 
         run_test! do
           expect(session.reload.status).to eq('ended')
           expect(json['ended']).to be(true)
         end
+      end
+
+      response '409', 'not started, or coverage is not complete' do
+        schema '$ref' => '#/components/schemas/Error'
+        let(:token) { create_interview(assessment, status: 'pending').invite_token }
+        run_test! { expect(Session.find_by(invite_token: token).status).to eq('pending') }
       end
 
       response '404', 'unknown token' do

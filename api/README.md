@@ -27,7 +27,8 @@ Fill in the required values in `config/application.yml`:
 | `GEMINI_PRO_MODEL` | e.g. `gemini-2.5-pro` |
 | `REDIS_URL` | e.g. `redis://localhost:6379/1` |
 | `ALLOWED_ORIGINS` | CORS origin for the frontend, e.g. `http://localhost:5173` |
-| `APP_BASE_URL` | Backend base URL, e.g. `http://localhost:3001` |
+| `APP_BASE_URL` | This API's own origin, e.g. `http://localhost:3001` |
+| `WEB_BASE_URL` | Origin of the web app, e.g. `http://localhost:5173`. Invite links are `WEB_BASE_URL/interview/<token>`. Required in production and must differ from `APP_BASE_URL` |
 
 ---
 
