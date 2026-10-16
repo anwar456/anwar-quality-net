@@ -69,6 +69,29 @@ RSpec.describe 'Auth & utility endpoints' do
   end
 
   path '/api/v1/speed_test' do
+    get 'Download speed-test sink' do
+      tags 'Utility'
+      description 'Returns `bytes` bytes of zeros (default 500000, at most 2000000) so the candidate hardware check ' \
+                  'measures against this API instead of third-party hosts. Rate limited per IP.'
+      produces 'application/octet-stream'
+      parameter name: :bytes, in: :query, required: false, schema: { type: :integer, minimum: 1, maximum: 2_000_000 }
+
+      response '200', 'the requested number of bytes' do
+        let(:bytes) { 1000 }
+        run_test! { expect(response.body.bytesize).to eq(1000) }
+      end
+
+      response '200', 'a request above the cap is clamped to 2 MB' do
+        let(:bytes) { 999_999_999 }
+        run_test! { expect(response.body.bytesize).to eq(2_000_000) }
+      end
+
+      response '200', 'no size asks for the default' do
+        let(:bytes) { nil }
+        run_test! { expect(response.body.bytesize).to eq(500_000) }
+      end
+    end
+
     post 'Upload speed-test sink' do
       tags 'Utility'
       description 'Accepts any payload, discards it and returns the number of bytes received (used by the candidate hardware check).'

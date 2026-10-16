@@ -16,6 +16,15 @@ Rails.application.routes.draw do
       # Health check
       get  'health', to: proc { [200, {}, [{ status: 'ok' }.to_json]] }
 
+      # Download speed test - a block of zeros of the requested size (default 500 KB, at most 2 MB). No login: the
+      # candidate hardware check runs before anything else; Rack::Attack limits it per IP.
+      get 'speed_test', to: proc { |env|
+        bytes = Rack::Utils.parse_query(env['QUERY_STRING'].to_s)['bytes'].to_i
+        bytes = 500_000 if bytes <= 0
+        bytes = [bytes, 2_000_000].min
+        [200, { 'Content-Type' => 'application/octet-stream', 'Cache-Control' => 'no-store' }, ['0' * bytes]]
+      }
+
       # Upload speed test — accepts any payload, discards it, returns bytes received
       post 'speed_test', to: proc { |env|
         bytes = env['CONTENT_LENGTH'].to_i

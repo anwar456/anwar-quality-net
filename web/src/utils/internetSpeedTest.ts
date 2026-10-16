@@ -22,87 +22,62 @@ export const DEFAULT_THRESHOLDS: SpeedThresholds = {
     maxPingMs: 300,
 };
 
-const SPEED_TEST_PING_URL = import.meta.env.VITE_SPEED_TEST_PING_URL as string | undefined;
-const SPEED_TEST_UPLOAD_URL = import.meta.env.VITE_SPEED_TEST_UPLOAD_URL as string | undefined;
+// The hardware check measures the path to OUR API, which is the path the interview audio uses. It must not call
+// third-party hosts: the production Content-Security-Policy only allows this origin and the API, so those calls
+// were blocked and every candidate failed the check (audit R-14). Each URL can still be overridden.
+const DOWNLOAD_BYTES = 1_000_000;
+const UPLOAD_BYTES = 500_000;
 
+function speedTestUrls() {
+    const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api/v1") as string;
+    const fresh = (url: string) => `${url}${url.includes("?") ? "&" : "?"}_=${Date.now()}`;
+    return {
+        ping: fresh((import.meta.env.VITE_SPEED_TEST_PING_URL as string | undefined) || `${apiBase}/health`),
+        upload: (import.meta.env.VITE_SPEED_TEST_UPLOAD_URL as string | undefined) || `${apiBase}/speed_test`,
+        download: fresh(
+            (import.meta.env.VITE_SPEED_TEST_DOWNLOAD_URL as string | undefined) || `${apiBase}/speed_test?bytes=${DOWNLOAD_BYTES}`
+        ),
+    };
+}
+
+// A measurement that cannot be taken counts as failed. Never invent a plausible number: an unreachable server
+// used to be reported as "just enough" upload speed, so the check passed exactly when it should not.
 async function measurePing(): Promise<number> {
-    if (SPEED_TEST_PING_URL) {
-        try {
-            const start = performance.now();
-            await fetch(SPEED_TEST_PING_URL, { cache: "no-cache" });
-            return performance.now() - start;
-        } catch {
-            return 999;
-        }
+    try {
+        const start = performance.now();
+        const response = await fetch(speedTestUrls().ping, { cache: "no-cache" });
+        if (!response.ok) return 999;
+        return performance.now() - start;
+    } catch {
+        return 999;
     }
-    const testUrls = [
-        "https://www.google.com/favicon.ico",
-        "https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js",
-        "https://unpkg.com/react@18/umd/react.production.min.js",
-    ];
-    for (const url of testUrls) {
-        try {
-            const start = performance.now();
-            await fetch(url, { mode: "no-cors", cache: "no-cache" });
-            return performance.now() - start;
-        } catch {
-            continue;
-        }
-    }
-    return 999;
 }
 
 async function measureDownloadSpeed(): Promise<number> {
-    const testFiles = [
-        { url: "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css", size: 0.2 },
-        { url: "https://unpkg.com/react@18/umd/react.development.js", size: 1.2 },
-        { url: "https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js", size: 0.09 },
-    ];
-    for (const testFile of testFiles) {
-        try {
-            const start = performance.now();
-            const response = await fetch(testFile.url, { cache: "no-cache" });
-            if (response.ok) {
-                await response.blob();
-                const seconds = (performance.now() - start) / 1000;
-                return testFile.size / seconds;
-            }
-        } catch {
-            continue;
-        }
-    }
-    // Rough fallback
     try {
         const start = performance.now();
-        await fetch("https://www.google.com/favicon.ico", { mode: "no-cors", cache: "no-cache" });
-        const duration = (performance.now() - start) / 1000;
-        return duration < 1 ? 2 : duration < 2 ? 1 : 0.5;
+        const response = await fetch(speedTestUrls().download, { cache: "no-cache" });
+        if (!response.ok) return 0;
+        const blob = await response.blob();
+        const seconds = (performance.now() - start) / 1000;
+        return blob.size / (1024 * 1024) / seconds; // MB/s
     } catch {
         return 0;
     }
 }
 
 async function measureUploadSpeed(): Promise<number> {
-    const uploadSizeMB = 0.5;
-    const uploadData = new Blob([new ArrayBuffer(uploadSizeMB * 1024 * 1024)], {
-        type: "application/octet-stream",
-    });
-    const endpoints = SPEED_TEST_UPLOAD_URL
-        ? [SPEED_TEST_UPLOAD_URL]
-        : ["https://httpbin.org/post", "https://www.httpbin.org/post", "https://postman-echo.com/post"];
-    for (const endpoint of endpoints) {
-        try {
-            const formData = new FormData();
-            formData.append("test", uploadData);
-            const start = performance.now();
-            await fetch(endpoint, { method: "POST", body: formData });
-            const seconds = (performance.now() - start) / 1000;
-            return uploadSizeMB / seconds;
-        } catch {
-            continue;
-        }
+    try {
+        const formData = new FormData();
+        formData.append("test", new Blob([new ArrayBuffer(UPLOAD_BYTES)], { type: "application/octet-stream" }));
+        const start = performance.now();
+        const response = await fetch(speedTestUrls().upload, { method: "POST", body: formData });
+        if (!response.ok) return 0;
+        const seconds = (performance.now() - start) / 1000;
+        return UPLOAD_BYTES / (1024 * 1024) / seconds; // MB/s
+    } catch {
+        return 0;
     }
-    return 0.5; // conservative fallback
 }
 
 async function runMultipleTests<T>(testFn: () => Promise<T>, count = 3): Promise<T[]> {

@@ -880,6 +880,24 @@ paths:
                     type: string
                     example: ok
   "/api/v1/speed_test":
+    get:
+      summary: Download speed-test sink
+      tags:
+      - Utility
+      description: Returns `bytes` bytes of zeros (default 500000, at most 2000000)
+        so the candidate hardware check measures against this API instead of third-party
+        hosts. Rate limited per IP.
+      parameters:
+      - name: bytes
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 2000000
+      responses:
+        '200':
+          description: no size asks for the default
     post:
       summary: Upload speed-test sink
       tags:

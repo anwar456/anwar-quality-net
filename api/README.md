@@ -50,6 +50,19 @@ rails db:seed
 
 ---
 
+## 3b. Create the first assessor
+
+Users belong to an organization (tenant) and cannot log in without one. Create the first admin for the organization
+the seeds created (`test-corp`), or for yours:
+
+```bash
+bundle exec rails users:create_admin EMAIL=admin@example.com PASSWORD='at-least-12-characters' SCHEME=test-corp
+```
+
+Running it again with the same email updates that user.
+
+---
+
 ## 4. Start Redis via Docker
 
 ```bash

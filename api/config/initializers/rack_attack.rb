@@ -16,6 +16,11 @@ class Rack::Attack
     req.ip if req.path.match?(%r{\A/api/v1/sessions/[^/]+/(candidate|audio_complete)\z})
   end
 
+  # The speed-test sink serves up to 2 MB per request without a login: keep it from being a free download.
+  throttle('speed_test', limit: 30, period: 1.minute) do |req|
+    req.ip if req.path == '/api/v1/speed_test'
+  end
+
   # Return 429 JSON instead of the default plain-text response.
   self.throttled_responder = lambda do |_req|
     [
