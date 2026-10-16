@@ -1,5 +1,5 @@
 # The Product
-Please refer to https://github.com/rakamindev/ai-interview-platform/wiki for initial product specification
+The product behaviour is specified, with acceptance criteria, under `assessment/specs/`.
 
 # The Platform
 

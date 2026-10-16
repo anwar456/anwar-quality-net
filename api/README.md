@@ -19,7 +19,7 @@ Fill in the required values in `config/application.yml`:
 
 | Variable | Description |
 |---|---|
-| `SECRET_KEY_BASE` | Must match `rakamin-api` — JWT tokens are shared |
+| `SECRET_KEY_BASE` | Must match the main platform API — JWT tokens are shared |
 | `DB_HOST` / `DB_PORT` / `DB_NAME` / `DB_USERNAME` / `DB_PASSWORD` | Shared PostgreSQL instance |
 | `GEMINI_API_KEY` | Google AI Studio API key |
 | `GEMINI_LIVE_MODEL` | e.g. `gemini-3.1-flash-live-preview` |

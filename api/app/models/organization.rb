@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-# Read-only reference to the existing rakamin-api organizations table.
-# Lives in the PostgreSQL public schema (excluded from Apartment in rakamin-api).
+# Read-only reference to the existing main platform API organizations table.
+# Lives in the PostgreSQL public schema (excluded from Apartment in the main platform API).
 # We connect to the same DB so this table is directly accessible.
 #
 # Only includes the fields we need for tenant resolution.
 class Organization < ApplicationRecord
   self.table_name = 'organizations'
 
-  # Mirrors rakamin-api Organisation.identify exactly.
+  # Mirrors the main platform API Organisation.identify exactly.
   # Accepts identifier, name, scheme, or host.
   def self.identify(identifier)
     return default_organization if identifier.blank?

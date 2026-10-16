@@ -6,7 +6,7 @@ class ApplicationController < ActionController::API
 
   before_action :require_tenant!
 
-  # Declarative auth helper — mirrors rakamin-api's authorize_auth_token! pattern.
+  # Declarative auth helper — mirrors the main platform API's authorize_auth_token! pattern.
   # Usage:
   #   authorize_auth_token! :admin
   #   authorize_auth_token! :assessor      # allows admin or assessor

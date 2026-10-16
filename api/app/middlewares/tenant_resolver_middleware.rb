@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Extracted and adapted from rakamin-api.
+# Extracted and adapted from the main platform API.
 #
 # Resolves the current tenant (Organization) per request and sets:
 #   Current.organization  → the Organization AR record
@@ -9,7 +9,7 @@
 # Resolution order:
 #   1. JWT Bearer token → decode → use `scheme` claim
 #   2. X-Tenant-Scheme request header (for non-JWT requests / candidate flows)
-#   3. Referer host (fallback, same as rakamin-api HostService approach)
+#   3. Referer host (fallback, same as the main platform API HostService approach)
 #
 # If no tenant can be resolved, the request continues with no tenant set.
 # Individual controllers can enforce tenant presence via before_action.

@@ -25,7 +25,7 @@ VITE_API_BASE_URL=http://localhost:3001/api/v1
 # WebSocket base URL (no /api/v1)
 VITE_WS_BASE_URL=ws://localhost:3001
 
-# Dev auth token — replace with a real JWT from Rakamin platform
+# Dev auth token — replace with a real JWT from the API (see api/README.md)
 VITE_DEV_TOKEN=<your-jwt-here>
 
 # Dev tenant context

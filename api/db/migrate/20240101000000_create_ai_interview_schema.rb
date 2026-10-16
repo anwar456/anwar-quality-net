@@ -93,7 +93,7 @@ class CreateAiInterviewSchema < ActiveRecord::Migration[7.0]
     create_table :sessions do |t|
       t.bigint   :tenant_id,   null: false
       t.references :assessment, null: false, foreign_key: true
-      t.bigint   :candidate_id              # nullable: candidate may not have Rakamin account
+      t.bigint   :candidate_id              # nullable: candidate may not have an account on the main platform
       t.string   :invite_token, limit: 64, null: false
       t.column   :status,       'ai_interview.session_status', null: false, default: 'pending'
       t.column   :end_reason,   'ai_interview.end_reason'

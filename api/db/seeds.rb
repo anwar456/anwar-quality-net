@@ -15,11 +15,11 @@ puts "== Seeding AI Interview development data =="
 
 # ── Organization ─────────────────────────────────────────────────────────────
 #
-# We write directly to public.organizations (shared with rakamin-api).
-# We use raw SQL so we don't have to mirror all of rakamin-api's validations
+# We write directly to public.organizations (shared with the main platform API).
+# We use raw SQL so we don't have to mirror all of the main platform API's validations
 # and callbacks in our read-only Organization model.
 #
-# Columns required by the rakamin-api schema:
+# Columns required by the the main platform API schema:
 #   name        — display name
 #   scheme      — used as the Apartment schema name AND as the JWT `scheme` claim
 #   identifier  — URL-safe slug (lowercase, min 3 chars)
@@ -27,7 +27,7 @@ puts "== Seeding AI Interview development data =="
 #   alias_hosts — additional hosts (postgres array)
 #   config      — JSONB config blob (Configurable concern)
 #
-# id = 0 is reserved in rakamin-api as the "default" org — do not use it here.
+# id = 0 is reserved in the main platform API as the "default" org — do not use it here.
 
 TEST_ORG = {
   name:       "Test Corp",

@@ -20,7 +20,7 @@ metadata:
 spec:
   ingressClassName: haproxy
   rules:
-    - host: ai-interview-api.rakamin.com
+    - host: api.example.com
       http:
         paths:
           - path: /

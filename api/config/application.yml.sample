@@ -1,13 +1,13 @@
 # Copy this to config/application.yml and fill in your values.
 # This file is loaded by Figaro and values become ENV vars.
 
-# Shared with rakamin-api — must match exactly for JWT to work
+# Shared with the main platform API — must match exactly for JWT to work
 SECRET_KEY_BASE: "your_secret_key_base_here"
 
-# Database (shared with rakamin-api)
+# Database (shared with the main platform API)
 DB_HOST: "localhost"
 DB_PORT: "5432"
-DB_NAME: "rakamin_development"
+DB_NAME: "platform_development"
 DB_USERNAME: "postgres"
 DB_PASSWORD: ""
 
@@ -22,7 +22,7 @@ GEMINI_PRO_MODEL: "gemini-2.0-pro-001"
 APP_BASE_URL: "http://localhost:3001"
 WEB_BASE_URL: "http://localhost:5173"
 
-# Token settings (should match rakamin-api)
+# Token settings (should match the main platform API)
 TOKEN_EXPIRATION_TIME: "259200"  # 3 days in seconds
 
 # CORS

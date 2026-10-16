@@ -1,4 +1,4 @@
-# GKE Node Pool — paragon-t2d-tau-pool (shared Tau T2D pool)
+# GKE Node Pool — <nodepool> (shared Tau T2D pool)
 #
 # Each node runs exactly 2 pods:
 #   - 1 × ai-interview-api      (Rails/Puma, port 3001)
@@ -15,11 +15,11 @@
 #
 # Pods target this pool via GKE's built-in label:
 #   nodeSelector:
-#     cloud.google.com/gke-nodepool: paragon-t2d-tau-pool
+#     cloud.google.com/gke-nodepool: <nodepool>
 #
 # ── Verify nodes are in the pool ────────────────────────────────────────────
 #
-#   kubectl get nodes -l cloud.google.com/gke-nodepool=paragon-t2d-tau-pool
+#   kubectl get nodes -l cloud.google.com/gke-nodepool=<nodepool>
 #   kubectl describe node <node-name> | grep -A5 Labels
 #
 # ── Scale (each replica needs one dedicated node) ───────────────────────────

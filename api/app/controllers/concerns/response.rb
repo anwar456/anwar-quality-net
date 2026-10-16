@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Extracted from rakamin-api and simplified for AI interview.
+# Extracted from the main platform API and simplified for AI interview.
 module Response
   private
 

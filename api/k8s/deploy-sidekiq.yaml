@@ -23,12 +23,12 @@ spec:
     spec:
       # ── Dedicated node pool ─────────────────────────────────────────────────
       nodeSelector:
-        cloud.google.com/gke-nodepool: paragon-t2d-tau-pool
+        cloud.google.com/gke-nodepool: <nodepool>
       
       tolerations:
         - key: cloud.google.com/compute-class
           operator: Equal
-          value: paragon-compute-class-tau-nodepool
+          value: <compute-class>
           effect: NoSchedule
 
       # ── Co-location rules ───────────────────────────────────────────────────
@@ -55,7 +55,7 @@ spec:
 
       containers:
         - name: ai-interview-sidekiq
-          image: asia-southeast2-docker.pkg.dev/rakamin-poc/rakamin-images/ai-interview-api:latest
+          image: <registry>/<project>/ai-interview-api:<git-sha>
           imagePullPolicy: Always
           command: ["bundle"]
           args: ["exec", "sidekiq", "-e", "staging"]

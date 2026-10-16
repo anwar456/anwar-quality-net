@@ -2,13 +2,13 @@
 
 require 'ostruct'
 
-# Extracted and simplified from rakamin-api.
+# Extracted and simplified from the main platform API.
 # Bearer token only (no basic auth — AI interview has no whitelist-key consumers).
 # Returns { user_id:, role:, scheme: } from the decoded JWT.
 # Does NOT hit the database for user lookup — trusts the JWT claims.
 class AuthorizeApiRequest
   # Roles that map to "assessor" permission in the AI interview context.
-  # rakamin-api uses 'admin'; 'assessor' is planned as a future role.
+  # the main platform API uses 'admin'; 'assessor' is planned as a future role.
   ASSESSOR_ROLES = %w[admin assessor].freeze
 
   def initialize(headers = {}, required_roles = [])

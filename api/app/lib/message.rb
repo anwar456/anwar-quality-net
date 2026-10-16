@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Extracted from rakamin-api with AI interview additions.
+# Extracted from the main platform API with AI interview additions.
 class Message
   def self.not_found(record = 'record')
     "Sorry, #{record} not found."

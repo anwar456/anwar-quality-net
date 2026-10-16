@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Extracted verbatim from rakamin-api.
+# Extracted verbatim from the main platform API.
 # Uses RequestStore for thread-safe, per-request globals.
 module Current
   module Ext
@@ -37,7 +37,7 @@ module Current
 
   extend Ext
 
-  # Mirrors rakamin-api Current accessors
+  # Mirrors the main platform API Current accessors
   class_accessor :user        # OpenStruct with id, role (from JWT; no DB lookup)
   class_accessor :organization # Organization AR record (from public schema)
   class_accessor :tenant_id   # Convenience alias: Current.organization.id
