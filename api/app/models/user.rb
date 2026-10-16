@@ -3,6 +3,9 @@
 class User < ApplicationRecord
   has_secure_password
 
+  # The organization (tenant) this user acts in. Read-only reference table shared with the main platform.
+  belongs_to :organization, foreign_key: :tenant_id, optional: true
+
   ROLES = %w[admin user].freeze
 
   validates :email, presence: true,

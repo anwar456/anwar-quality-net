@@ -57,15 +57,34 @@ RSpec.describe 'Tenant isolation', :critical, type: :request do
   end
 
   describe 'login' do
-    before { create_user(email: 'admin@example.test', password: 'Passw0rd!') }
+    let(:login_headers) { { 'Content-Type' => 'application/json', 'X-Tenant-Scheme' => org_b.scheme } }
+    let(:credentials) { { email: 'admin@example.test', password: 'Passw0rd!' }.to_json }
 
-    it 'does not issue a token for a tenant the client asked for' do
-      post '/api/v1/auth/login',
-           params: { email: 'admin@example.test', password: 'Passw0rd!' }.to_json,
-           headers: { 'Content-Type' => 'application/json', 'X-Tenant-Scheme' => org_b.scheme }
+    it 'issues a token for the tenant of the user, whatever tenant the client asks for' do
+      create_user(email: 'admin@example.test', password: 'Passw0rd!', org: org_a)
+
+      post '/api/v1/auth/login', params: credentials, headers: login_headers
 
       expect(response).to have_http_status(:ok)
-      expect(token_scheme(json['token'])).not_to eq(org_b.scheme)
+      expect(token_scheme(json['token'])).to eq(org_a.scheme)
+    end
+
+    it 'refuses a user who is not assigned to any organization' do
+      create_user(email: 'admin@example.test', password: 'Passw0rd!', org: nil)
+
+      post '/api/v1/auth/login', params: credentials, headers: login_headers
+
+      expect(response).to have_http_status(:forbidden)
+      expect(json).not_to have_key('token')
+    end
+
+    it 'does not let a header complete a token that has no tenant claim' do
+      tokenless = JsonWebToken.encode({ user_id: 1, role: 'admin' })
+
+      get '/api/v1/assessments',
+          headers: { 'Authorization' => "Bearer #{tokenless}", 'X-Tenant-Scheme' => org_b.scheme }
+
+      expect(response).to have_http_status(:forbidden)
     end
   end
 

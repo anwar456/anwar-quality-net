@@ -835,6 +835,12 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/Error"
+        '403':
+          description: the user is not assigned to an organization
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
       requestBody:
         content:
           application/json:

@@ -16,7 +16,7 @@ RSpec.describe 'Auth & utility endpoints' do
       }
 
       let!(:org) { create_org }
-      let!(:user) { create_user(email: 'admin@example.test', password: 'Passw0rd!') }
+      let!(:user) { create_user(email: 'admin@example.test', password: 'Passw0rd!', org: org) }
 
       response '200', 'token issued' do
         schema type: :object, required: %w[token user],
@@ -40,9 +40,16 @@ RSpec.describe 'Auth & utility endpoints' do
         run_test!
       end
 
+      response '403', 'the user is not assigned to an organization' do
+        schema '$ref' => '#/components/schemas/Error'
+        let!(:unassigned) { create_user(email: 'nobody@example.test', password: 'Passw0rd!', org: nil) }
+        let(:credentials) { { email: 'nobody@example.test', password: 'Passw0rd!' } }
+        run_test!
+      end
+
       response '401', 'non-admin users cannot log in' do
         schema '$ref' => '#/components/schemas/Error'
-        let!(:plain_user) { create_user(email: 'user@example.test', password: 'Passw0rd!', role: 'user') }
+        let!(:plain_user) { create_user(email: 'user@example.test', password: 'Passw0rd!', role: 'user', org: org) }
         let(:credentials) { { email: 'user@example.test', password: 'Passw0rd!' } }
         run_test!
       end

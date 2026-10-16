@@ -31,6 +31,10 @@ class AuthorizeApiRequest
   attr_reader :headers
 
   def build_user_struct(claims)
+    # The tenant is fixed by the signed token. A token without a scheme claim would otherwise let the
+    # X-Tenant-Scheme header (which TenantResolverMiddleware accepts for unauthenticated flows) pick the tenant.
+    raise(ExceptionHandler::Unauthorized, Message.unauthorized) if claims[:scheme].blank?
+
     OpenStruct.new(
       id:     claims[:user_id],
       role:   claims[:role].to_s,

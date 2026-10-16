@@ -11,7 +11,8 @@ from a client-supplied header, so any admin can obtain a token for any organisat
 ## Rules
 1. Every record reachable by id through the API belongs to exactly one tenant; a lookup from another tenant behaves as "not found" (404), never 403, so existence is not disclosed.
 2. Child records (portfolio, portfolio skill, fit/gap report, override) inherit their tenant from the session they belong to; they are resolved through that tenant-scoped parent.
-3. The tenant of a login is the tenant of the user. A `X-Tenant-Scheme` header sent by the client is ignored for authentication.
+3. The tenant of a login is the tenant of the user (`users.tenant_id`). A `X-Tenant-Scheme` header sent by the client is ignored for authentication. A user who is not assigned to an organization cannot log in (403).
+3a. A token without a tenant (`scheme`) claim is refused; the `X-Tenant-Scheme` header never completes a token.
 4. Background jobs act on ids they were given by an already-checked request; they do not widen access.
 
 ## Acceptance criteria
@@ -22,6 +23,14 @@ Then every request answers 404, nothing is enqueued and no override row exists.
 Given an admin of organisation A who is logged in
 When they log in sending `X-Tenant-Scheme` of organisation B
 Then the token's scheme claim is not B's scheme.
+
+Given an admin of organisation A and an account that is not assigned to any organisation
+When the unassigned account logs in
+Then the answer is 403 and no token is issued.
+
+Given a signed token that has no scheme claim
+When it is used together with an X-Tenant-Scheme header
+Then the request is refused (403).
 
 Given an admin of organisation A
 When they list assessments

@@ -20,8 +20,9 @@ module ApiHelpers
     "Bearer #{token_for(org, **opts)}"
   end
 
-  def create_user(email: 'admin@example.test', password: 'Passw0rd!', role: 'admin')
-    User.create!(email: email, password: password, role: role)
+  # org: the organization the user belongs to; nil creates an unassigned (legacy) user.
+  def create_user(email: 'admin@example.test', password: 'Passw0rd!', role: 'admin', org: nil)
+    User.create!(email: email, password: password, role: role, tenant_id: org&.id)
   end
 
   def create_taxonomy(skill_id: 'SK-TEST-001', label: 'Test Skill')
