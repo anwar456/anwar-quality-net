@@ -21,3 +21,4 @@ A check cell is either a file that exists, or `none: <reason>`, which is a discl
 | R-13 | P1 | assessment/specs/SPEC-006-production-readiness.md | api/spec/tasks/create_admin_task_spec.rb | fixed |
 | R-14 | P1 | assessment/specs/SPEC-007-candidate-hardware-check.md | web/src/utils/internetSpeedTest.test.ts | fixed |
 | R-15 | P1 | assessment/specs/_template.md | web/quality/dor/check.cjs | mitigated by the gate (specs now exist for R-01..R-13) |
+| R-16 | P1 | assessment/specs/SPEC-008-report-export.md | api/spec/requests/api/v1/portfolios_spec.rb | fixed |

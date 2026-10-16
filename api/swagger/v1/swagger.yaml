@@ -1028,7 +1028,8 @@ paths:
         description: Include the fit/gap report for this vacancy
       responses:
         '200':
-          description: PDF export
+          description: PDF export of a portfolio with an assessor override and text
+            the PDF font cannot draw
           content:
             application/json:
               schema:

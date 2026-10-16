@@ -6,6 +6,24 @@ require 'prawn/table'
 module Exports
   # N14: Generates a PDF export of a portfolio, optionally including a fit/gap report.
   # Returns the PDF as a binary string.
+  # Prawn's built-in fonts only draw Windows-1252 characters and raise on anything else (an arrow, ">=" as one
+  # character, CJK, emoji). The text here includes arbitrary candidate quotes, so a character the font cannot draw
+  # is replaced by "?" instead of failing the whole export. The JSON export keeps the original text.
+  # Follow-up if this matters: embed a Unicode TTF font.
+  module PdfText
+    module_function
+
+    def safe(value)
+      value.to_s.encode('Windows-1252', invalid: :replace, undef: :replace, replace: '?').encode('UTF-8')
+    end
+  end
+
+  class SafeDocument < Prawn::Document
+    def text(string, options = {}, &block)
+      super(PdfText.safe(string), options, &block)
+    end
+  end
+
   class PdfGenerator
     LEVEL_LABELS = { 1 => 'L1', 2 => 'L2', 3 => 'L3', 4 => 'L4', 5 => 'L5' }.freeze
     CONFIDENCE_LABELS = { 'high' => 'High', 'medium' => 'Medium', 'low' => 'Low' }.freeze
@@ -26,7 +44,7 @@ module Exports
 
     # Returns PDF binary string.
     def call
-      Prawn::Document.new(page_size: 'A4', margin: [40, 50, 40, 50]) do |pdf|
+      SafeDocument.new(page_size: 'A4', margin: [40, 50, 40, 50]) do |pdf|
         render_header(pdf)
         render_portfolio_section(pdf)
         render_fit_gap_section(pdf) if @fit_gap
@@ -82,7 +100,7 @@ module Exports
         pdf.text "#{skill.skill_label}", style: :bold
 
         level_text = "Level: #{LEVEL_LABELS[effective_level]}"
-        level_text += " (AI: #{LEVEL_LABELS[skill.ai_level]} → Override: #{LEVEL_LABELS[override.override_level]})" if override
+        level_text += " (AI: #{LEVEL_LABELS[skill.ai_level]}, assessor override: #{LEVEL_LABELS[override.override_level]})" if override
         level_text += "  |  Confidence: #{CONFIDENCE_LABELS[skill.ai_confidence] || skill.ai_confidence}"
         pdf.text level_text
       end
@@ -124,10 +142,10 @@ module Exports
       table_data = [['Skill', 'Required', 'Candidate', 'Result', 'Delta']]
       comparisons.each do |c|
         table_data << [
-          c['skill_label'],
+          PdfText.safe(c['skill_label']),
           c['expected_level'] ? "L#{c['expected_level']}" : '—',
           c['candidate_level'] ? "L#{c['candidate_level']}" : '—',
-          RESULT_LABELS[c['result']] || c['result'],
+          PdfText.safe(RESULT_LABELS[c['result']] || c['result']),
           c['delta'] ? (c['delta'] > 0 ? "+#{c['delta']}" : c['delta'].to_s) : '—'
         ]
       end

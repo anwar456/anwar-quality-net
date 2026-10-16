@@ -104,6 +104,20 @@ RSpec.describe 'Portfolios, overrides and fit/gap' do
         run_test! { expect(response.body).to start_with('%PDF') }
       end
 
+      response '200', 'PDF export of a portfolio with an assessor override and text the PDF font cannot draw' do
+        produces 'application/pdf'
+        let(:portfolio_and_skill) do
+          portfolio, skill = create_portfolio(session)
+          skill.create_assessor_override!(ai_level: 3, override_level: 4, overridden_by: 1, assessor_notes: 'strong')
+          skill.update!(evidence: ['"Saya memakai ≥ 3 replika — 日本語 — 😀"'])
+          [portfolio, skill]
+        end
+        let(:id) { portfolio_and_skill.first.id }
+        let(:format) { 'pdf' }
+        let(:vacancy_id) { nil }
+        run_test! { expect(response.body).to start_with('%PDF') }
+      end
+
       response '422', 'portfolio not complete' do
         produces 'application/json'
         schema '$ref' => '#/components/schemas/Error'
