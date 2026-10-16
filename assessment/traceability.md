@@ -8,16 +8,16 @@ A check cell is either a file that exists, or `none: <reason>`, which is a discl
 | R-31 | P0 | assessment/specs/SPEC-006-production-readiness.md | api/spec/critical/boot_spec.rb | fixed |
 | R-01 | P1 | assessment/specs/SPEC-001-tenant-isolation.md | api/spec/critical/tenant_isolation_spec.rb | fixed |
 | R-02 | P1 | assessment/specs/SPEC-001-tenant-isolation.md | api/spec/critical/tenant_isolation_spec.rb | fixed |
-| R-03 | P1 | assessment/specs/SPEC-004-data-integrity-crud.md | web/src/pages/assessments/AssessmentEditPage.test.tsx | open |
+| R-03 | P1 | assessment/specs/SPEC-004-data-integrity-crud.md | web/src/pages/assessments/AssessmentEditPage.test.tsx | fixed |
 | R-04 | P1 | assessment/specs/SPEC-002-portfolio-integrity.md | api/spec/critical/fit_gap_spec.rb | fixed |
 | R-05 | P1 | assessment/specs/SPEC-002-portfolio-integrity.md | api/spec/critical/portfolio_generation_spec.rb | fixed |
 | R-06 | P1 | assessment/specs/SPEC-003-coverage-and-session-lifecycle.md | api/spec/critical/coverage_spec.rb | fixed |
 | R-07 | P1 | assessment/specs/SPEC-005-invite-link-and-contract.md | api/spec/critical/session_lifecycle_spec.rb | fixed |
-| R-08 | P1 | assessment/specs/SPEC-005-invite-link-and-contract.md | web/src/components/fitgap/ComparisonTable.contract.test.tsx | open |
+| R-08 | P1 | assessment/specs/SPEC-005-invite-link-and-contract.md | web/src/components/fitgap/ComparisonTable.contract.test.tsx | fixed |
 | R-09 | P1 | assessment/specs/SPEC-003-coverage-and-session-lifecycle.md | api/spec/critical/session_lifecycle_spec.rb | fixed |
 | R-10 | P1 | assessment/specs/SPEC-004-data-integrity-crud.md | api/spec/critical/session_lifecycle_spec.rb | fixed |
 | R-11 | P1 | assessment/specs/SPEC-002-portfolio-integrity.md | api/spec/critical/portfolio_generation_spec.rb | fixed |
 | R-12 | P1 | assessment/specs/SPEC-003-coverage-and-session-lifecycle.md | none: needs a socket-level integration test (live audio); owner to assign | open, disclosed |
-| R-13 | P1 | assessment/specs/SPEC-006-production-readiness.md | web/quality/checks/no-dev-token.cjs | open (first-admin path not covered) |
+| R-13 | P1 | assessment/specs/SPEC-006-production-readiness.md | web/quality/checks/no-dev-token.cjs | token path fixed; first-admin path open |
 | R-14 | P1 | assessment/specs/SPEC-006-production-readiness.md | none: production CSP vs speed-test hosts needs a browser-level check | open, disclosed |
 | R-15 | P1 | assessment/specs/_template.md | web/quality/dor/check.cjs | mitigated by the gate (specs now exist for R-01..R-13) |

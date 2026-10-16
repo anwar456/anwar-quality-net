@@ -26,6 +26,7 @@ import SkillPicker from "@/components/assessment/SkillPicker";
 import { ArrowLeft, Plus, Loader2 } from "lucide-react";
 import { assessmentsApi } from "@/services/assessments";
 import { TIME_LIMIT_OPTIONS } from "@/utils/constants";
+import { withDestroyed } from "@/lib/nestedAttributes";
 import type { AssessmentSkill } from "@/types";
 import type { AssessmentFormValues } from "./AssessmentNewPage";
 
@@ -36,6 +37,8 @@ export default function AssessmentEditPage() {
   const [submitting, setSubmitting] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // The skills as loaded: the form only knows what is left, the API must be told what was removed.
+  const [loadedSkills, setLoadedSkills] = useState<AssessmentSkill[]>([]);
 
   const form = useForm<AssessmentFormValues>({
     defaultValues: { name: "", time_limit_min: 45, skills: [] },
@@ -49,6 +52,7 @@ export default function AssessmentEditPage() {
       .get(Number(id))
       .then((res) => {
         const a = res.data.assessment;
+        setLoadedSkills(a.skills ?? []);
         reset({ name: a.name, time_limit_min: a.time_limit_min, skills: a.skills });
       })
       .catch(() => {})
@@ -77,7 +81,7 @@ export default function AssessmentEditPage() {
       await assessmentsApi.update(Number(id), {
         name: data.name,
         time_limit_min: data.time_limit_min,
-        assessment_skills_attributes: data.skills.map((s, i) => ({ ...s, display_order: i })),
+        assessment_skills_attributes: withDestroyed(loadedSkills, data.skills.map((s, i) => ({ ...s, display_order: i }))),
       });
       navigate(`/assessments/${id}/invite`);
     } catch (e: any) {

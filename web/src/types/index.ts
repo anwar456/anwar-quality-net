@@ -129,10 +129,13 @@ export type SkillComparisonResult = "match" | "gap" | "exceed" | "not_assessed";
 
 export interface SkillComparison {
   skill_label: string;
-  required_level: number;
-  candidate_level?: number;
+  skill_id?: string | null;
+  /** Level the vacancy requires. (The API field is `expected_level`; see api/swagger/v1/swagger.yaml.) */
+  expected_level: number;
+  candidate_level?: number | null;
   result: SkillComparisonResult;
-  delta?: number;
+  delta?: number | null;
+  /** True when the candidate level comes from an assessor override. */
   is_override?: boolean;
 }
 

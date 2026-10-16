@@ -10,7 +10,7 @@ repository names the organisation that owns the exercise, its hosts and its regi
 
 ## Rules
 1. `rails zeitwerk:check` passes and the application boots with `RAILS_ENV=production` and only the production gem groups.
-2. No production web bundle reads `VITE_DEV_TOKEN`; it is only read behind `import.meta.env.DEV`.
+2. No production web bundle contains `VITE_DEV_TOKEN`: the code reads it only behind `import.meta.env.DEV`, and because Vite publishes every `VITE_*` variable of the build environment (a library pulls in the whole `import.meta.env`), the production build itself refuses to run while that variable is set.
 3. No tracked file or path contains an identifier from the forbidden list (stored as hashes in web/quality/scan/forbidden-terms.sha256).
 
 ## Acceptance criteria
@@ -21,6 +21,10 @@ Then it boots without error.
 Given a production build of the web app
 When the source is checked
 Then no unguarded read of VITE_DEV_TOKEN exists.
+
+Given VITE_DEV_TOKEN is set in the environment of a production build
+When the build runs
+Then it stops with an error and publishes nothing.
 
 Given the git-tracked files of the repository
 When the confidentiality scan runs

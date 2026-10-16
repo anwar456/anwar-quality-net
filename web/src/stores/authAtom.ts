@@ -7,7 +7,10 @@ export interface AuthState {
 const STORAGE_KEY = "auth_token";
 
 export function getStoredToken(): string | null {
-  return localStorage.getItem(STORAGE_KEY) ?? import.meta.env.VITE_DEV_TOKEN ?? null;
+  // A pre-issued token for local work. `import.meta.env.DEV` is false in production builds, so the branch (and the
+  // token with it) is removed from the bundle and logging out really logs out.
+  const devToken = import.meta.env.DEV ? import.meta.env.VITE_DEV_TOKEN : undefined;
+  return localStorage.getItem(STORAGE_KEY) ?? devToken ?? null;
 }
 
 export function saveToken(token: string) {

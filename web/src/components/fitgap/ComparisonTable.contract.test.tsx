@@ -24,3 +24,13 @@ describe("ComparisonTable <- FitGapReport contract", () => {
     expect(screen.getByText(/not assessed/i)).toBeInTheDocument();
   });
 });
+
+describe("ComparisonTable <- is_override", () => {
+  it("marks a level that comes from an assessor override", () => {
+    const row = { ...(sampleOf("SkillComparison") as object), skill_label: "Test Skill", expected_level: 3, candidate_level: 4, result: "exceed", delta: 1, is_override: true };
+    render(<ComparisonTable comparisons={[row as never]} />);
+
+    const cell = screen.getByText("L4").closest("td") as HTMLElement;
+    expect(cell).toHaveTextContent("✏");
+  });
+});

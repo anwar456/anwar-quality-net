@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import LevelRadio from "@/components/assessment/LevelRadio";
 import SkillPicker from "@/components/assessment/SkillPicker";
 import { vacanciesApi } from "@/services/vacancies";
+import { withDestroyed } from "@/lib/nestedAttributes";
 import { ArrowLeft, Plus, X, Loader2 } from "lucide-react";
 import type { VacancySkill } from "@/types";
 
@@ -26,6 +27,8 @@ export default function VacancyEditPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  // The skills as loaded: the form only knows what is left, the API must be told what was removed.
+  const [loadedSkills, setLoadedSkills] = useState<VacancySkill[]>([]);
 
   const { register, handleSubmit, control, setValue, watch, reset } = useForm<VacancyFormValues>({
     defaultValues: { role_title: "", culture_dimensions: "", competency_expectations: "", skills: [] },
@@ -35,6 +38,7 @@ export default function VacancyEditPage() {
   useEffect(() => {
     vacanciesApi.get(Number(id)).then((res) => {
       const v = res.data.vacancy;
+      setLoadedSkills(v.skills ?? []);
       reset({ role_title: v.role_title, culture_dimensions: v.culture_dimensions, competency_expectations: v.competency_expectations, skills: v.skills });
     }).catch(() => {}).finally(() => setLoading(false));
   }, [id, reset]);
@@ -46,7 +50,7 @@ export default function VacancyEditPage() {
         role_title: data.role_title,
         culture_dimensions: data.culture_dimensions,
         competency_expectations: data.competency_expectations,
-        vacancy_skills_attributes: data.skills,
+        vacancy_skills_attributes: withDestroyed(loadedSkills, data.skills),
       });
       navigate("/vacancies");
     } finally {

@@ -147,6 +147,10 @@ jobs:
       - run: npm ci
       - name: No login token can reach a production bundle
         run: node quality/checks/no-dev-token.cjs
+      - name: A production build with a dev token in its environment is refused
+        if: ${{ !cancelled() }}
+        run: |
+          if VITE_DEV_TOKEN=leak-check npx vite build; then echo "the build accepted a dev token"; exit 1; fi
       - name: Types
         if: ${{ !cancelled() }}
         run: npm run typecheck
