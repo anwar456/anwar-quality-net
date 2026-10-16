@@ -62,7 +62,8 @@ module FitGap
           expected_level:  expected_level,
           result:          result,
           delta:           delta,
-          confidence:      portfolio_skill&.dig(:confidence)
+          confidence:      portfolio_skill&.dig(:confidence),
+          is_override:     portfolio_skill ? portfolio_skill[:overridden] : false
         }
       end
 
@@ -85,9 +86,20 @@ module FitGap
       end
     end
 
+    # Match by id first, then by label. Both are compared in a normalised form, because the id was typed by a
+    # person or echoed by an LLM at some point: "SK-ENG-001", "sk-eng-001 " and "Sk-Eng-001" are the same skill.
     def find_portfolio_skill(portfolio_skills, label, skill_id)
-      portfolio_skills.find { |s| s[:skill_id] == skill_id && skill_id.present? } ||
-        portfolio_skills.find { |s| s[:skill_label].downcase == label.downcase }
+      id = norm_id(skill_id)
+      portfolio_skills.find { |s| id.present? && norm_id(s[:skill_id]) == id } ||
+        portfolio_skills.find { |s| norm_label(s[:skill_label]) == norm_label(label) }
+    end
+
+    def norm_id(value)
+      value.to_s.strip.upcase
+    end
+
+    def norm_label(value)
+      value.to_s.downcase.gsub(/\s+/, ' ').strip
     end
 
     def generate_narratives(skill_comparisons)

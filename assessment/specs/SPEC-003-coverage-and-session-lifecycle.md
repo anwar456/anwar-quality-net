@@ -1,6 +1,7 @@
 # SPEC-003 - Coverage means evidence; a session ends for a recorded, true reason
 
 Audit items: R-06, R-09 (R-12 tracked, not yet checked)
+Known consequence of rule 1: a partial skill that left the analyzer's 6-turn window is not re-evaluated, so an interview may run to its time limit instead of ending early. Accepted; follow-up is to give the analyzer more context for partial skills.
 Status: accepted
 
 ## Problem

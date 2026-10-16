@@ -75,7 +75,7 @@ RSpec.describe Portfolios::Generator, :critical do
   describe 'atomicity' do
     it 'persists nothing when any skill in the payload is invalid' do
       expect do
-        generate([skill_payload, skill_payload('skill_id' => 'SK-TEST-002', 'skill_label' => 'Other Skill', 'confidence' => 'certain')])
+        generate([skill_payload, skill_payload('skill_id' => 'SK-TEST-002', 'skill_label' => 'Other Skill', 'competency_summary' => '')])
       end.to raise_error(StandardError)
 
       expect(portfolio.generation_status).to eq('failed')
@@ -97,6 +97,37 @@ RSpec.describe Portfolios::Generator, :critical do
 
       expect { generate([skill_payload]) }.to raise_error(StandardError, /transcript/i)
       expect(portfolio.portfolio_skills.count).to eq(0)
+    end
+  end
+
+  describe 'what the LLM must give us' do
+    it 'refuses to rate a transcript that contains only interviewer turns' do
+      session.transcript_turns.where(speaker: 'candidate').delete_all
+
+      expect { generate([skill_payload]) }.to raise_error(StandardError, /candidate/i)
+      expect(portfolio.portfolio_skills.count).to eq(0)
+    end
+
+    it 'fails when a configured skill is left out, instead of silently dropping it' do
+      expect { generate([skill_payload]) }.to raise_error(StandardError, /omitted/i)
+      expect(portfolio.portfolio_skills.count).to eq(0)
+    end
+
+    it 'fails when it rates a skill we never configured' do
+      expect do
+        generate([skill_payload, skill_payload('skill_id' => 'SK-TEST-002', 'skill_label' => 'Other Skill'),
+                  skill_payload('skill_id' => 'SK-NOPE', 'skill_label' => 'Invented Skill')])
+      end.to raise_error(StandardError, /not configured/i)
+    end
+
+    it 'fails when a rating quotes no evidence' do
+      expect { generate([skill_payload('evidence' => []), skill_payload('skill_id' => 'SK-TEST-002', 'skill_label' => 'Other Skill')]) }
+        .to raise_error(StandardError, /evidence/i)
+    end
+
+    it 'accepts the level written as "L3" or "3" but nothing else' do
+      generate([skill_payload('level' => 'L3'), skill_payload('skill_id' => 'SK-TEST-002', 'skill_label' => 'Other Skill', 'level' => '2')])
+      expect(portfolio.portfolio_skills.order(:id).pluck(:ai_level)).to eq([3, 2])
     end
   end
 

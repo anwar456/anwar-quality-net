@@ -16,6 +16,8 @@ differs in case from the configured one.
 4. Generation is all-or-nothing: if any skill is invalid, no portfolio skill is stored and the portfolio is marked failed with the reason.
 5. An interview with no transcript, or whose turn numbers have a gap, is not rated; the portfolio is marked failed ("transcript incomplete").
 6. Fit/gap matches a requirement to a rated skill by normalised id first, then by case-insensitive label.
+7. Every configured skill must be rated exactly once, every rating must quote at least one piece of evidence and carry a summary; a rating of a skill that was not configured, or a missing one, fails the whole generation. The level may be written `3` or `L3`, nothing else.
+8. The transcript must contain at least one candidate turn.
 
 ## Acceptance criteria
 Given a finished interview with a complete transcript and a coverage map

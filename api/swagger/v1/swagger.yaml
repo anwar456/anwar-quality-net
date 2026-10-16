@@ -468,7 +468,7 @@ components:
     SkillComparison:
       type: object
       description: One row of the fit/gap table. The required level is `expected_level`;
-        the web reads `required_level` (audit R-08). `is_override` is not sent.
+        `is_override` is true when the candidate level comes from an assessor override.
       required:
       - skill_label
       - expected_level
@@ -497,6 +497,8 @@ components:
         confidence:
           type: string
           nullable: true
+        is_override:
+          type: boolean
     FitGapReport:
       type: object
       required:

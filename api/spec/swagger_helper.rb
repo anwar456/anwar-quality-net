@@ -190,14 +190,15 @@ RSpec.configure do |config|
           },
           SkillComparison: {
             type: :object,
-            description: 'One row of the fit/gap table. The required level is `expected_level`; the web reads ' \
-                         '`required_level` (audit R-08). `is_override` is not sent.',
+            description: 'One row of the fit/gap table. The required level is `expected_level`; ' \
+                         '`is_override` is true when the candidate level comes from an assessor override.',
             required: %w[skill_label expected_level result],
             properties: {
               skill_label: { type: :string }, skill_id: { type: :string, nullable: true },
               expected_level: { type: :integer }, candidate_level: { type: :integer, nullable: true },
               result: { type: :string, enum: %w[match gap exceed not_assessed] },
-              delta: { type: :integer, nullable: true }, confidence: { type: :string, nullable: true }
+              delta: { type: :integer, nullable: true }, confidence: { type: :string, nullable: true },
+              is_override: { type: :boolean }
             }
           },
           FitGapReport: {
