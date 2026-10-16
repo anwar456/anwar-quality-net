@@ -1,0 +1,164 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-scripts:
+    name: Gate scripts (unit tests) + confidentiality scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: The gate checks are themselves tested
+        run: node --test quality/
+      - name: Every P0/P1 audit item is traced to a spec and a check
+        run: node quality/checks/traceability.js
+      - name: No company / product / client identifiers in the repo
+        run: node quality/scan/identifiers.js
+
+  api:
+    name: API - ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: critical path (tenant isolation, ratings, lifecycle)
+            args: --tag critical
+          - name: API contract
+            args: --tag ~critical
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+    env:
+      RAILS_ENV: test
+      DB_HOST: localhost
+      DB_PORT: '5432'
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      SECRET_KEY_BASE: ci-only-secret-key-base-0123456789abcdef0123456789abcdef
+      REDIS_URL: redis://localhost:6379/1
+      ALLOWED_ORIGINS: http://localhost:5173
+      APP_BASE_URL: http://localhost:3001
+      GEMINI_API_KEY: not-used-in-tests
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3.2
+          bundler-cache: true
+          working-directory: api
+      - name: Prepare database
+        run: bundle exec rails db:create db:schema:load
+      - name: Run specs
+        run: bundle exec rspec ${{ matrix.args }} --format progress
+      - name: OpenAPI document is up to date with the specs
+        if: matrix.name == 'API contract'
+        run: |
+          bundle exec rake rswag:specs:swaggerize
+          git diff --exit-code -- swagger/ || (echo "swagger/v1/swagger.yaml is stale: run rake rswag:specs:swaggerize and commit it" && exit 1)
+
+  api-boot:
+    name: API boots in production mode
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ['6379:6379']
+    env:
+      # Same gems as the production image (Dockerfile excludes development and test).
+      BUNDLE_WITHOUT: development:test
+      RAILS_ENV: production
+      FORCE_SSL: 'false'
+      DB_HOST: localhost
+      DB_PORT: '5432'
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      SECRET_KEY_BASE: ci-only-secret-key-base-0123456789abcdef0123456789abcdef
+      REDIS_URL: redis://localhost:6379/1
+      ALLOWED_ORIGINS: https://app.example.test
+      APP_BASE_URL: https://api.example.test
+      GEMINI_API_KEY: not-used
+      GEMINI_LIVE_MODEL: live-model
+      GEMINI_FLASH_MODEL: flash-model
+      GEMINI_PRO_MODEL: pro-model
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3.2
+          bundler-cache: true
+          working-directory: api
+      - name: Every file defines the constant its path implies
+        run: bundle exec rails zeitwerk:check
+      - name: The app loads with production settings
+        run: bundle exec rails runner 'Rails.application.eager_load!; puts "booted in #{Rails.env}"'
+
+  web:
+    name: Web - types, tests, build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - name: No login token can reach a production bundle
+        run: node ../quality/checks/no-dev-token.js
+      - run: npm run typecheck
+      - name: Tests (includes the web <-> API contract, read from api/swagger)
+        run: npm test
+      - run: npm run build
+
+  # One status to protect the branch with: it is green only if every job above is green.
+  quality-gate:
+    name: Quality gate
+    if: always()
+    needs: [quality-scripts, api, api-boot, web]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every required check passed
+        run: |
+          echo "quality-scripts: ${{ needs.quality-scripts.result }}"
+          echo "api:             ${{ needs.api.result }}"
+          echo "api-boot:        ${{ needs.api-boot.result }}"
+          echo "web:             ${{ needs.web.result }}"
+          [ "${{ needs.quality-scripts.result }}" = "success" ] && [ "${{ needs.api.result }}" = "success" ] && [ "${{ needs.api-boot.result }}" = "success" ] && [ "${{ needs.web.result }}" = "success" ]

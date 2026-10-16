@@ -1,0 +1,23 @@
+name: Definition of Ready
+
+# Blocks a pull request that does not carry its inputs: spec, acceptance criteria, design plan, tests.
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+
+jobs:
+  dor:
+    name: Definition of Ready
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Check that the change carries its inputs
+        run: node quality/dor/run.js
