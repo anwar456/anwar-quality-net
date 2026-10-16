@@ -5,7 +5,7 @@ Bahasa severity mengikuti brief (P0 blocker / P1 major / P2 minor / P3 kosmetik;
 
 ## 1. Kesimpulan
 
-**Jangan dirilis ke klien.** Ada 1 temuan P0 yang terbukti saat aplikasi dijalankan, dan 15 temuan P1. Yang paling berbahaya:
+**Jangan dirilis ke klien.** Ada 1 temuan P0 yang terbukti saat aplikasi dijalankan, dan 16 temuan P1. Yang paling berbahaya:
 
 0. **API tidak bisa start di mode produksi** (R-31): dua kesalahan terpisah membuat proses langsung crash. Di mode development semuanya tampak normal, sehingga tidak ada yang menyadarinya.
 1. Satu tenant bisa membaca dan mengubah portfolio kandidat milik tenant lain (R-01), dan assessor mana pun bisa mencetak token untuk tenant mana pun (R-02).
@@ -55,7 +55,7 @@ R-03 (form edit mengirim 1 dari 2 skill → DB tetap menyimpan 2),
 R-07 (`invite_url` = `http://localhost:3001/interview/<token>`, host API),
 R-09 (`POST /sessions/<token>/audio_complete` tanpa auth pada sesi yang belum dimulai → 200, status `ended`, `end_reason=all_covered`),
 R-10 (`DELETE` assessment yang punya sesi → 200 "Assessment deleted", `GET` sesudahnya → 200).
-Temuan lain masih statis.
+Dibuktikan kemudian, saat memperbaiki: R-16 (PDF 500 dengan override atau karakter non-Windows-1252), R-14 (kode lama **meloloskan** cek internet saat server menolak, karena nilai upload cadangan 4 Mbps sama dengan batas minimum), R-13 (token tetap masuk bundle bila `VITE_DEV_TOKEN` ada di lingkungan build, karena Vite menerbitkan seluruh `import.meta.env`). Sisanya dibuktikan oleh tes di jaring pengaman (lihat `02-quality-system.md`).
 
 | ID | Kelas | Risiko | Dampak (siapa/apa yang dirugikan) | Bukti (file:baris / cara reproduksi) | Penangkap |
 |---|---|---|---|---|---|
@@ -74,12 +74,12 @@ Temuan lain masih statis.
 | R-13 | MS + BW | **Tidak ada cara membuat assessor pertama.** Seeds membuat org dan taksonomi tetapi tidak membuat user; web memanggil endpoint `/signup` yang tidak ada (`SignupPage` tidak terpasang di router). Web memakai `VITE_DEV_TOKEN` saat build bila tidak ada token login, yang berarti kredensial bisa tertanam di bundle produksi | Lingkungan baru tidak bisa dipakai tanpa akses console; jika env var itu diset saat build, token menjadi publik dan logout tidak pernah berfungsi | `db/seeds.rb`, `config/routes.rb`, `services/auth.ts:16`, `stores/authAtom.ts:9-11`, `services/api.ts:30-33` | Seed spec; build check web yang gagal bila `VITE_DEV_TOKEN` diset untuk produksi |
 | R-14 | BW (tergantung konfigurasi) | **Kandidat bisa terblokir di hardware check pada produksi.** Tombol start nonaktif sampai speed test lolos; tes memanggil host pihak ketiga yang dilarang CSP bawaan (`connect-src 'self' <api>`), dan override endpoint kosong di `.env.example` | Pada konfigurasi produksi default, setiap kandidat gagal di cek "internet" dan tidak bisa memulai | `HardwareCheck.tsx:127,284`, `internetSpeedTest.ts:44-47,59-63,92-96`, CSP `vercel.json`, `.env.example` | Config check: build produksi mewajibkan URL speed-test dan CSP harus mengizinkannya |
 | R-15 | MS | **Spec hilang di bagian yang paling penting.** Tidak ada acceptance criteria (PRD 02 berupa simulasi naratif, tanpa Given/When/Then); tidak ada yang mendefinisikan tenancy, auth/role, consent kandidat, retensi rekaman/transkrip, kedaluwarsa undangan, perilaku saat gagal, maupun NFR; PRD tidak ada di repo dan gagal tampil di wiki. PRD 01 dan PRD 02 saling bertentangan (jendela analyzer 6 vs 2 turn; id skill huruf kecil vs besar; skill discovered mulai di probe_count 0 pada PRD, 1 pada kode) | Tidak ada yang bisa memastikan apakah R-01…R-14 itu bug; setiap perselisihan jadi soal tafsir | Riwayat wiki, `README.md`, tidak adanya `docs/` | **Gate Definition-of-Ready** (tugas 2): tidak ada perubahan yang boleh merge tanpa spec + AC + catatan desain yang ditautkan |
+| R-16 | BW | **Ekspor PDF gagal (500)** untuk portfolio yang punya override assessor, dan untuk kutipan kandidat dengan karakter di luar Windows-1252 (simbol, CJK, emoji). Font bawaan PDF hanya bisa menggambar Windows-1252 dan melempar error untuk sisanya; baris override memuat "→" | Setiap portfolio yang sudah di-review (override adalah fitur inti) tidak bisa diunduh sebagai PDF; hanya ekspor JSON yang tersisa. Semula saya nilai P2 dari pembacaan kode; setelah dibuktikan di runtime menjadi P1 | **Terbukti**: portfolio dengan override dan kutipan "≥ 3 replika — 日本語 — 😀" ⇒ 500 | spec rswag "PDF export of a portfolio with an assessor override and text the PDF font cannot draw" |
 
 ### P2 — minor (berjalan dan datanya benar, tetapi ada masalah terbatas/tidak memblokir)
 
 | ID | Kelas | Risiko | Bukti |
 |---|---|---|---|
-| R-16 | BW (perlu verifikasi) | Ekspor PDF kemungkinan error pada karakter di luar Windows-1252 (font bawaan PDF): baris override memuat "→", dan kutipan kandidat berupa teks bebas. Ekspor JSON tetap berfungsi | `exports/pdf_generator.rb:85,100` |
 | R-17 | BW | Batas waktu hanya ditegakkan saat ada event transkripsi; timer klien mulai ulang dari durasi penuh saat halaman di-refresh dan mengakhiri sesi sebagai `manual_candidate`, bukan `time_ceiling` | `audio_websocket_middleware.rb:661-678`, `InterviewTimer.tsx:20-22`, `InterviewPage.tsx:173-181,254-258` |
 | R-18 | BW | `end_reason` salah label: kandidat yang menutup tab dicatat sebagai `error` dan tampil sebagai "Last: failed" | `audio_websocket_middleware.rb:501-517`, `AssessmentListPage.tsx:21-22` |
 | R-19 | BW | Kedua pintu masuk WebSocket menerima JWT tenant yang valid apa pun tanpa memeriksa role (token ber-role kandidat bisa menonton monitor coverage langsung) | `coverage_websocket_middleware.rb:125-137`, `audio_websocket_middleware.rb:742-750` |
@@ -119,7 +119,7 @@ R-30: request tanpa token dijawab `403 Tenant not found` (bukan 401) karena tena
 |---|---|
 | Wajib diperbaiki agar aplikasi bisa hidup di produksi | R-31 |
 | Wajib diperbaiki sebelum data klien masuk | R-01, R-02, R-03, R-07, R-09, R-10 |
-| Wajib diperbaiki sebelum rating ditampilkan ke pengambil keputusan perekrutan | R-04, R-05, R-06, R-08, R-11 |
+| Wajib diperbaiki sebelum rating ditampilkan ke pengambil keputusan perekrutan | R-04, R-05, R-06, R-08, R-11, R-16 |
 | Harus diperbaiki, atau punya pemilik + mitigasi + tanggal | R-12, R-13, R-14, R-15 |
 | Gate proses yang harus ditegakkan pipeline mulai sekarang | spec/AC/rencana desain tertaut di setiap perubahan (R-15); tes tersedia (R-27); pemindaian kerahasiaan (R-28); kontrak web↔API (R-08) |
 
@@ -135,4 +135,42 @@ Temuan P2/P3 boleh ikut rilis bila dicantumkan di release notes beserta pemilikn
 
 ## 8. Status akhir
 
-Akan dilengkapi setelah tugas 2–4. Setiap R-xx akan ditandai **fixed / remaining (pemilik, mitigasi)** beserta rujukan commit dan check yang menjaganya.
+Diperbarui 16 Okt 2026. "Bukti" = commit; check yang menjaganya ada di `assessment/traceability.md`.
+Semua check CI hijau pada commit terakhir (lihat `03-release-decision.md` untuk keputusan rilis).
+
+### P0 dan P1
+
+| ID | Status | Bukti | Catatan / keputusan sadar |
+|---|---|---|---|
+| R-31 | **fixed** | `a04fb7a` | Dua penyebab terpisah, keduanya akar masalah (konfigurasi mati, nama kelas ≠ nama file). Server produksi sungguhan dijalankan: health 200, `/api-docs` tidak terekspos |
+| R-01 | **fixed** | `a0bd664` | Portfolio dicari lewat sesi yang ter-scope tenant (`for_current_tenant`, gagal tertutup). Tidak menambah kolom tenant agar tidak bisa tidak sinkron |
+| R-02 | **fixed** | `a0bd664` | `users.tenant_id`; pengguna tanpa organisasi tidak bisa login (403); token tanpa claim `scheme` ditolak |
+| R-03 | **fixed** | `d01873a` | `withDestroyed(loaded, submitted)` di dua halaman edit |
+| R-04 | **fixed** | `af849b9` | Identitas skill dari skill terkonfigurasi; pencocokan id tidak peka huruf besar/kecil dan spasi |
+| R-05 | **fixed** | `af849b9` | Validasi penuh sebelum menulis; confidence dihitung server; transaksi tunggal. **Keputusan sadar:** bila LLM melewatkan skill terkonfigurasi, seluruh generasi gagal (assessor menekan Retry) dan tidak ada portfolio setengah jadi |
+| R-06 | **fixed** | `af849b9` | Promosi otomatis dihapus. **Konsekuensi diterima:** skill partial yang keluar dari jendela 6 turn analyzer tidak dievaluasi ulang, sehingga interview bisa berjalan sampai batas waktu. Tindak lanjut: beri analyzer konteks lebih untuk skill partial |
+| R-07 | **fixed** | `726346e` | `WEB_BASE_URL`; produksi menolak boot bila kosong, bukan URL, atau sama dengan `APP_BASE_URL` (diuji) |
+| R-08 | **fixed** | `d01873a`, `af849b9` | Tabel membaca `expected_level`; `is_override` dikirim dan ditampilkan; tes web memakai bodi dari kontrak |
+| R-09 | **fixed** | `726346e` | 409 bila sesi belum aktif atau coverage belum lengkap. Lihat catatan label `all_covered` di SPEC-003 |
+| R-10 | **fixed** | `726346e` | 409 dengan alasan; pengaman yang sama di vacancy |
+| R-11 | **dimitigasi** | `af849b9` | Kehilangan transkrip kini **terdeteksi** sebelum menilai (turn bolong atau kosong ⇒ portfolio gagal, tidak ada rating). Jalur tulis di middleware WebSocket masih hanya mencatat error ke log. Tindak lanjut: retry dan penanda pada sesi |
+| R-12 | **tersisa (disengaja)** | — | Assessor mengakhiri sesi, tetapi stream audio kandidat masih hidup. Mitigasi yang sudah ada: batas waktu sesi dan grace period 120 detik setelah tab ditutup membatasi paparan. Perlu perbaikan di middleware audio (berlangganan kanal status sesi dan menutup socket) **beserta tes tingkat socket**; tanpa tes itu saya tidak mengubah kode yang mengatur audio langsung. Pemilik dan tenggat: lihat `03-release-decision.md` |
+| R-13 | **fixed** | `d01873a`, `085f552` | Token dev hanya di build dev **dan** build produksi menolak berjalan bila `VITE_DEV_TOKEN` terisi; `rails users:create_admin` untuk assessor pertama |
+| R-14 | **fixed** | `085f552` | Cek mengukur ke API sendiri, gagal tertutup; endpoint download baru dengan batas 2 MB dan rate limit |
+| R-15 | **dimitigasi** | `2852812` | Kini ada 8 spec tertulis dengan Given/When/Then dan matriks keterlacakan, dan gate DoR memaksa spec untuk perubahan berikutnya. **Tersisa:** PRD asli hanya ada di wiki pemilik (tidak disalin ke repo ini), dan belum ada spec untuk consent kandidat, retensi rekaman/transkrip, serta NFR. Itu keputusan produk, bukan keputusan engineering |
+| R-16 | **fixed** | `876a4a5` | Font PDF tidak bisa menggambar semua karakter ⇒ diganti `?`; JSON tetap lossless. Tindak lanjut: sematkan font Unicode |
+
+### P2 dan P3
+
+| ID | Status | Catatan |
+|---|---|---|
+| R-27 | **fixed** | Ada tes (107 contoh API, 12 web, 28 skrip), CI, dan gate. Lockfile web di-commit |
+| R-28 | **fixed** | `315fa9e`. Pemindai bersih (3 identifier terlarang). **Tersisa:** commit pertama riwayat ini adalah impor asli yang diminta brief dan masih memuat nama asli; istilah deskriptif "AI interview" tidak ada di daftar terlarang (keputusan pemilik repo) |
+| R-26 | sebagian | Lockfile web di-commit; image k8s memakai placeholder tag, bukan `:latest`. Tersisa: Rails 7.0/Puma 5.6 EOL, Dockerfile berjalan sebagai root tanpa `.dockerignore`, manifest tanpa `Secret`, Sidekiq `-e staging` |
+| R-17, R-18, R-19, R-20, R-21, R-22, R-23, R-24, R-25, R-29, R-30 | tersisa (disengaja) | Tidak memblokir fungsi utama dan datanya benar. Diurutkan berdasarkan dampak untuk iterasi berikutnya: R-19 (peran di WebSocket) dan R-20 (token undangan tidak kedaluwarsa) lebih dulu, lalu R-17/R-18 (batas waktu, `end_reason`), sisanya. R-21 (discovered skill memblokir `all_covered`) dan R-22 (regenerasi fit/gap) memengaruhi pengalaman, bukan integritas data |
+
+### Perubahan penilaian selama pengerjaan (kejujuran)
+
+- Kesimpulan awal "tidak ada P0" **salah**; boot produksi baru dicoba setelah aplikasi bisa dijalankan (R-31).
+- R-16 saya nilai P2 dari membaca kode; setelah dibuktikan, P1.
+- Dugaan "frame WebSocket biner" dan "end_session pada socket tanpa autentikasi" **belum dibuktikan maupun dicabut**; perlu tes tingkat socket.

@@ -37,11 +37,11 @@ bila semua job hijau.
 
 | Job | Menjalankan | Melindungi (audit) |
 |---|---|---|
-| Gate scripts + scan | `node --test web/quality/`, traceability, pemindaian identifier | gate itu sendiri; R-28; hilangnya temuan |
-| API — critical path | `rspec --tag critical` (31 contoh) | R-01, R-02, R-04, R-05, R-06, R-07, R-09, R-10, R-11, R-31 |
-| API — contract | `rspec --tag ~critical` (59 contoh) + dokumen OpenAPI tidak basi | bentuk 32 operasi API; R-03/R-08 sisi API |
+| Gate scripts + scan | `node --test web/quality/` (28 tes), lint workflow, traceability, pemindaian identifier | gate itu sendiri; R-28; hilangnya temuan |
+| API — critical path | `rspec --tag critical` (41 contoh) | R-01, R-02, R-04, R-05, R-06, R-07, R-09, R-10, R-11, R-13, R-31 |
+| API — contract | `rspec --tag ~critical` (66 contoh) + dokumen OpenAPI tidak basi | bentuk 32 operasi API; R-03/R-08 sisi API |
 | API boots in production mode | `rails zeitwerk:check` + boot dengan `RAILS_ENV=production` dan hanya gem produksi | R-31 |
-| Web | `tsc --noEmit`, `vitest`, cek token dev, `vite build` | R-03, R-08, R-13 |
+| Web | cek token dev, build produksi dengan token harus **ditolak**, `tsc --noEmit`, `vitest` (12 tes), `vite build` | R-03, R-08, R-13, R-14 |
 
 Pilihan desain yang perlu diketahui:
 
@@ -79,11 +79,53 @@ akibat nama helper bertabrakan dengan method internal Rails, diperbaiki sebelum 
 - **Kualitas penilaian LLM**: tes memastikan rating *berasal dari* data kita dan divalidasi, bukan bahwa levelnya tepat.
 - **Workflow GitHub Actions belum pernah berjalan di GitHub** (repo belum ada). Yang sudah dilakukan: YAML diparse, dan setiap perintah job diulang di Docker dengan variabel lingkungan yang sama. Run pertama di GitHub adalah verifikasi yang tersisa.
 
-## 5. Bukti gate dan red → green
+## 5. Bukti gate
 
-- **PR yang diblokir dan PR yang lolos:** dibuat setelah repo publik ada; tautan dicatat di `03-release-decision.md`.
-- **Catatan red → green** (apa yang merah, apa yang diubah, apa yang hijau sekarang): bagian *6* di bawah, diisi pada tugas 3 dengan rujukan commit.
+Repo: https://github.com/anwar456/anwar-quality-net
+
+- **Gate DoR** diperagakan dengan dua PR sungguhan (satu diblokir, satu lolos). Tautannya dicatat di `03-release-decision.md`.
+- Gate-nya diuji sendiri (13 kasus untuk DoR, 4 untuk keterlacakan, 4 untuk pemindai identifier, 3 untuk token dev, 4 untuk lint workflow, ditambah kasus untuk gate itu sendiri sebagai kode produksi).
 
 ## 6. Red → green
 
-Diisi pada tugas 3.
+Perbaikan R-31 sampai R-11 dimulai dari tes yang sudah merah (commit `9d50de5`, ditulis sebelum satu baris pun kode produksi diubah). Untuk R-14 dan R-16 tes ditulis bersamaan dengan perbaikannya, lalu dijalankan terhadap kode lama untuk membuktikan merah (3 dari 3 dan 500, dicatat di pesan commit). Tugas `users:create_admin` (R-13) adalah fitur baru: tesnya ditulis bersamaan dan tidak ada bukti merah-dulu. Tidak ada tes yang dilemahkan.
+Satu-satunya perubahan pada tes yang sudah ada dirinci di pesan commit-nya: pemicu tes atomicity (confidence tidak lagi menjadi input, jadi pemicunya diganti dengan ringkasan kosong; asersinya sama) dan tes login (dibuat lebih kuat, bukan lebih lemah).
+
+### Apa yang berubah, per commit
+
+| Commit | Temuan | Merah sebelumnya | Yang diubah (akar masalah) | Hijau sekarang |
+|---|---|---|---|---|
+| `a04fb7a` | R-31 | `boot_spec`, `zeitwerk:check`, boot produksi | Konfigurasi ActiveJob yang mati dihapus; nama kelas WebSocket disamakan dengan nama file | boot dengan gem produksi; server produksi sungguhan menjawab health 200 |
+| `a0bd664` | R-01, R-02 | 6 contoh `tenant_isolation_spec` | Portfolio dicari lewat sesi ber-tenant (gagal tertutup); `users.tenant_id`; token tanpa `scheme` ditolak | 9 contoh, termasuk 2 baru |
+| `af849b9` | R-04, R-05, R-06, R-11 | 9 contoh (generator, fit/gap, coverage) | Validasi penuh sebelum menulis, identitas dan confidence dari data kita, satu transaksi, promosi otomatis dihapus | 13 contoh generator (5 baru), 5 fit/gap, 4 coverage |
+| `726346e` | R-07, R-09, R-10 | 4 contoh `session_lifecycle_spec` | `audio_complete` hanya mengonfirmasi fakta; delete menjawab 409; `WEB_BASE_URL` dengan pengaman boot | 6 contoh; kontrak diperbarui |
+| `d01873a` | R-03, R-08, R-13 | 3 tes web | `withDestroyed` di dua halaman edit; tipe dan tabel mengikuti kontrak; build produksi menolak token dev | 9 tes web |
+| `315fa9e` | R-28 | pemindai: 50 baris di 26 berkas | Placeholder netral, tanpa mengubah logika | bersih |
+| `63d6b95` | (CI) | job Boot di GitHub | Perintah terpotong komentar YAML; lint ditambahkan | semua job |
+| `085f552` | R-13, R-14 | 3 tes web (kode lama meloloskan cek saat server error) | `users:create_admin`; cek mengukur ke API sendiri dan gagal tertutup | 3 tes web, 3 contoh API (speed test), 3 contoh rake |
+| `876a4a5` | R-16 | spec PDF: 500 | Teks disaring ke Windows-1252 sebelum digambar | 200 |
+
+### Run CI di GitHub
+
+Run bertanda ✔ hijau, ✘ merah. Isi kolom kedua adalah job yang merah.
+
+| Run | Commit | Hasil | Job merah |
+|---|---|---|---|
+| [38851526425](https://github.com/anwar456/anwar-quality-net/actions/runs/38851526425) | `a5a458f` | ✘ | critical path, boot produksi, scripts+scan, web |
+| [38859953259](https://github.com/anwar456/anwar-quality-net/actions/runs/38859953259) | `a04fb7a` (R-31) | ✘ | keempatnya masih merah |
+| [38860690598](https://github.com/anwar456/anwar-quality-net/actions/runs/38860690598) | `a0bd664` (R-01, R-02) | ✘ | keempatnya |
+| [38861552805](https://github.com/anwar456/anwar-quality-net/actions/runs/38861552805) | `af849b9` (R-04..R-11) | ✘ | keempatnya |
+| [38862304946](https://github.com/anwar456/anwar-quality-net/actions/runs/38862304946) | `726346e` (R-07, R-09, R-10) | ✘ | **critical path berubah hijau**; sisa: scripts+scan, web, boot |
+| [38864366358](https://github.com/anwar456/anwar-quality-net/actions/runs/38864366358) | `315fa9e` (R-28) | ✘ | hanya boot produksi |
+| [38864637294](https://github.com/anwar456/anwar-quality-net/actions/runs/38864637294) | `63d6b95` | ✔ | — |
+| [38865512049](https://github.com/anwar456/anwar-quality-net/actions/runs/38865512049) | `085f552` | ✔ | — |
+| [38866561912](https://github.com/anwar456/anwar-quality-net/actions/runs/38866561912) | `876a4a5` | ✔ | — |
+
+Dua catatan jujur tentang tabel itu:
+
+1. Job *boot produksi* tetap merah sampai `63d6b95`, **padahal R-31 sudah diperbaiki di `a04fb7a`** dan diverifikasi lokal (server produksi sungguhan dijalankan). Penyebabnya bug saya di workflow: satu perintah terpotong komentar YAML sehingga job itu gagal untuk alasan lain. Itu baru terlihat setelah job lain hijau. Pelajarannya sudah dijadikan check (lint workflow) dan dicatat di audit.
+2. Job *tes kontrak API* hijau di setiap run, termasuk yang pertama: kontrak mendokumentasikan perilaku asli sejak awal, dan tetap hijau ketika perilaku diperbaiki karena dokumennya diregenerasi dari spec yang sama.
+
+### Yang masih merah atau tersisa, dengan sengaja
+
+Lihat `01-audit.md` bagian 8: R-12 (stream audio tidak berhenti saat assessor mengakhiri sesi) adalah satu-satunya P1 yang tersisa tanpa perbaikan, dan R-15 dimitigasi tetapi bukan tuntas. Tidak ada check yang dibuat hijau dengan menyembunyikan keduanya: R-12 tercatat di `traceability.md` sebagai celah yang diungkap.
