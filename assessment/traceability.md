@@ -5,7 +5,7 @@ A check cell is either a file that exists, or `none: <reason>`, which is a discl
 
 | Audit | Sev | Spec | Check | Status |
 |---|---|---|---|---|
-| R-31 | P0 | assessment/specs/SPEC-006-production-readiness.md | api/spec/critical/boot_spec.rb | open |
+| R-31 | P0 | assessment/specs/SPEC-006-production-readiness.md | api/spec/critical/boot_spec.rb | fixed |
 | R-01 | P1 | assessment/specs/SPEC-001-tenant-isolation.md | api/spec/critical/tenant_isolation_spec.rb | open |
 | R-02 | P1 | assessment/specs/SPEC-001-tenant-isolation.md | api/spec/critical/tenant_isolation_spec.rb | open |
 | R-03 | P1 | assessment/specs/SPEC-004-data-integrity-crud.md | web/src/pages/assessments/AssessmentEditPage.test.tsx | open |
