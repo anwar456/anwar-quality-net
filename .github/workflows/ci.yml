@@ -24,8 +24,10 @@ jobs:
       - name: The gate checks are themselves tested
         run: node --test quality/
       - name: Every P0/P1 audit item is traced to a spec and a check
+        if: ${{ !cancelled() }}
         run: node quality/checks/traceability.js
       - name: No company / product / client identifiers in the repo
+        if: ${{ !cancelled() }}
         run: node quality/scan/identifiers.js
 
   api:
@@ -125,6 +127,7 @@ jobs:
       - name: Every file defines the constant its path implies
         run: bundle exec rails zeitwerk:check
       - name: The app loads with production settings
+        if: ${{ !cancelled() }}
         run: bundle exec rails runner 'Rails.application.eager_load!; puts "booted in #{Rails.env}"'
 
   web:
@@ -143,10 +146,15 @@ jobs:
       - run: npm ci
       - name: No login token can reach a production bundle
         run: node ../quality/checks/no-dev-token.js
-      - run: npm run typecheck
+      - name: Types
+        if: ${{ !cancelled() }}
+        run: npm run typecheck
       - name: Tests (includes the web <-> API contract, read from api/swagger)
+        if: ${{ !cancelled() }}
         run: npm test
-      - run: npm run build
+      - name: Production build
+        if: ${{ !cancelled() }}
+        run: npm run build
 
   # One status to protect the branch with: it is green only if every job above is green.
   quality-gate:
