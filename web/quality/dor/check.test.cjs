@@ -108,3 +108,17 @@ test('the gate scripts are code: changing them needs a test change too', () => {
   const ok = evaluate({ title: 'chore: x', body: goodBody, changedFiles: ['web/quality/dor/check.cjs', 'web/quality/dor/check.test.cjs'], readFile });
   assert.equal(ok.ok, true, ok.failures.join('\n'));
 });
+
+test('a heading that appears twice does not hide the filled one (GitHub appends the template to a commit-message body)', () => {
+  const body = `${goodBody}\n<!-- template -->\n## Spec\n<!-- link -->\n\n## Acceptance criteria\n<!-- g/w/t -->\n\n## Design plan\n<!-- plan -->\n`;
+  const r = evaluate({ title: 'fix: tenant isolation (R-01)', body, changedFiles: withTests, readFile });
+  assert.equal(r.ok, true, r.failures.join('\n'));
+  assert.deepEqual(Object.keys(sections(body)).sort(), ['acceptance criteria', 'design plan', 'spec', 'tests']);
+});
+
+test('a template left empty below an empty body is still blocked', () => {
+  const body = '## Spec\n<!-- link -->\n\n## Acceptance criteria\n<!-- g/w/t -->\n\n## Design plan\n<!-- plan -->\n\n## Spec\n<!-- link -->\n';
+  const r = evaluate({ title: 'feat: x', body, changedFiles: withTests, readFile });
+  assert.equal(r.ok, false);
+  assert.equal(r.failures.length, 3);
+});

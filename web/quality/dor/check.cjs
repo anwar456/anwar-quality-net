@@ -28,7 +28,9 @@ function sections(body) {
     const m = /^##\s+(.+?)\s*$/.exec(line);
     if (m) {
       current = m[1].toLowerCase();
-      out[current] = '';
+      // A heading can appear twice: GitHub fills a pull request with the commit message and then appends the
+      // template. Content of repeated headings is joined, so an empty copy never hides the filled one.
+      if (!(current in out)) out[current] = '';
     } else if (current) {
       out[current] += `${line}\n`;
     }
