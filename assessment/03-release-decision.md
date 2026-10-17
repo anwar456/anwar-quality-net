@@ -64,6 +64,20 @@ Semua tercatat di `assessment/01-audit.md` bagian 8. Yang paling relevan:
 - **Nilai tes hijau diuji pada dirinya sendiri.** Seluruh jaring (160+ pemeriksaan otomatis) hijau pada versi ini, tetapi itu hanya satu dari empat syarat. Jaring itu tidak bisa menjawab apakah audio sampai ke model.
 - **Kesalahan saya sendiri di sepanjang jalan, yang saya catat bukan saya sembunyikan:** kesimpulan awal "tidak ada P0" salah (R-31 baru terlihat setelah aplikasi dijalankan); R-16 saya nilai P2 dari membaca kode, ternyata P1; satu bug di workflow saya membuat job boot produksi merah lama setelah perbaikan aslinya selesai; PR #2 saya sangka lolos gate padahal diblokir (lihat di bawah).
 
+## Bukti tambahan setelah tag: jalur penilaian dengan model sungguhan
+
+Sesudah tag dibuat, jalur REST (generator portfolio dan fit/gap) dijalankan di lingkungan lokal terhadap model bahasa
+sungguhan, dengan satu wawancara demo (10 turn, dua skill terkonfigurasi, satu skill discovered), bukan lagi dengan
+`FakeLlm`. Hasil: 7 dari 8 pembuatan portfolio berhasil, satu gagal karena *timeout* jaringan ke penyedia model (bukan
+penolakan validasi), dan nol penolakan oleh validator ketat dari R-05. Rating stabil di tiap run (L3 / L3 / L2),
+identitas skill kanonik, confidence sesuai aturan PRD (high, medium, low), kutipan bukti asli dari transkrip, dan fit/gap
+memberi `not_assessed` untuk skill yang tidak pernah dinilai tanpa mengarang level.
+
+Batasnya, supaya tidak dibaca lebih dari yang sebenarnya:
+- Modelnya **DeepSeek**, bukan Gemini yang dipakai produk. Ini membuktikan bahwa *kode kita* menerima dan memvalidasi keluaran model sungguhan dengan benar, bukan bahwa Gemini menjawab dengan bentuk yang sama.
+- Satu wawancara, delapan pengulangan: bukti bahwa jalurnya bekerja, bukan angka keandalan.
+- Ini **bukan** verifikasi end-to-end wawancara suara. Alasan 2 di atas tetap berlaku, dan gate rilis tetap menjawab BLOCKED sampai catatan itu ada.
+
 ## Bukti proses dan tautan
 
 | Hal | Tautan / hasil |
