@@ -1,0 +1,88 @@
+name: Release gate
+
+# Pushing a version tag (v1.2.3) answers one question for that exact version: RELEASABLE or BLOCKED.
+# The run is green only when the version is releasable; the release page says which, and why.
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  net:
+    name: Quality net
+    uses: ./.github/workflows/ci.yml
+
+  gate:
+    name: Release status
+    needs: net
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      status: ${{ steps.verdict.outputs.status }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Decide
+        id: verdict
+        env:
+          TAG: ${{ github.ref_name }}
+          NET_RESULT: ${{ needs.net.result }}
+          RELEASE_BODY_FILE: ${{ runner.temp }}/release-body.md
+        run: node web/quality/release/gate.cjs
+      - name: Keep the verdict for the release page
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-verdict
+          path: ${{ runner.temp }}/release-body.md
+          if-no-files-found: warn
+
+  publish:
+    name: Release page
+    needs: gate
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-verdict
+          path: verdict
+        continue-on-error: true
+      - name: Publish the verdict on the release for this tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          STATUS: ${{ needs.gate.outputs.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO: ${{ github.repository }}
+        run: |
+          # No status means the gate itself did not finish: that is BLOCKED, never "assume fine".
+          if [ -z "$STATUS" ]; then STATUS=BLOCKED; fi
+          {
+            echo "**Status: $STATUS**"
+            echo
+            echo "Decided by the release gate: $RUN_URL"
+            echo
+            if [ -f verdict/release-body.md ]; then cat verdict/release-body.md; else echo "The gate did not produce a report; treat this version as blocked."; fi
+            echo
+            echo "What this version claims to deliver: RELEASE_NOTES.md at this tag."
+          } > body.md
+          if [ "$STATUS" = "RELEASABLE" ]; then PRE=false; else PRE=true; fi
+          if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+            gh release edit "$TAG" --repo "$REPO" --title "$TAG - $STATUS" --notes-file body.md --prerelease="$PRE"
+          else
+            if [ "$PRE" = true ]; then FLAG=--prerelease; else FLAG=; fi
+            gh release create "$TAG" --repo "$REPO" --verify-tag --title "$TAG - $STATUS" --notes-file body.md $FLAG
+          fi
