@@ -76,6 +76,7 @@ memberi `not_assessed` untuk skill yang tidak pernah dinilai tanpa mengarang lev
 Batasnya, supaya tidak dibaca lebih dari yang sebenarnya:
 - Modelnya **DeepSeek**, bukan Gemini yang dipakai produk. Ini membuktikan bahwa *kode kita* menerima dan memvalidasi keluaran model sungguhan dengan benar, bukan bahwa Gemini menjawab dengan bentuk yang sama.
 - Satu wawancara, delapan pengulangan: bukti bahwa jalurnya bekerja, bukan angka keandalan.
+- Langkah 6 dan 7 dari `assessment/e2e-checklist.md` (portfolio, fit/gap, ekspor PDF dan JSON, override lalu ekspor PDF, serta admin organisasi lain yang mendapat 404) dijalankan terhadap aplikasi yang berjalan lewat panggilan HTTP yang sama dengan yang dipakai antarmuka. Semuanya sesuai, termasuk ekspor PDF setelah override yang dulu menjawab 500. Dijalankan lewat HTTP, bukan lewat browser.
 - Ini **bukan** verifikasi end-to-end wawancara suara. Alasan 2 di atas tetap berlaku, dan gate rilis tetap menjawab BLOCKED sampai catatan itu ada.
 
 ## Bukti proses dan tautan
