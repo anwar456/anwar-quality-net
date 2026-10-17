@@ -1,5 +1,33 @@
 # 01 — Audit Platform
 
+## Ringkasan dalam bahasa sederhana
+
+*Bagian ini untuk siapa pun yang tidak ingin membaca detail teknis. Rincian untuk insinyur ada di bagian 1 sampai 8 di bawahnya.*
+
+**Apa yang diperiksa.** Sebuah aplikasi yang mewawancarai kandidat kerja lewat suara dengan bantuan AI, lalu menilai kemampuan mereka. Saya membaca kodenya, menjalankannya, dan mencoba merusaknya.
+
+**Kesimpulan.** Ketika saya terima, aplikasi ini **belum layak dipakai pelanggan**. Ditemukan 1 masalah paling parah dan 16 masalah besar.
+
+**Yang paling penting, dalam bahasa sehari-hari:**
+
+1. **Aplikasi tidak bisa menyala di server sungguhan.** Di komputer pengembang tampak normal, tetapi begitu dijalankan seperti di server, ia langsung mati. Inilah satu-satunya masalah tingkat paling parah.
+2. **Perusahaan A bisa mengintip, bahkan mengubah, data kandidat milik perusahaan B.** Seperti kunci apartemen yang ternyata bisa membuka pintu unit lain.
+3. **Siapa pun yang sudah login bisa mengaku berasal dari perusahaan lain,** dan aplikasi percaya begitu saja.
+4. **Penilaian kandidat bisa "dikarang".** Jika jawaban AI kosong atau aneh, aplikasi mengisinya dengan angka yang tampak wajar tanpa memberi tahu siapa pun. Penilaian juga bisa dibuat dari wawancara yang rekamannya kosong atau bolong.
+5. **Layar menunjukkan satu hal, tempat penyimpanan berisi hal lain.** Tombol hapus skill tampak berhasil padahal datanya tidak terhapus. Assessment "dihapus" padahal tidak.
+6. **Tautan undangan untuk kandidat salah alamat,** sehingga kandidat tidak bisa membukanya.
+7. **Tidak ada satu pun tes otomatis dan tidak ada aturan tertulis tentang apa yang seharusnya dilakukan aplikasi.** Akibatnya tidak ada yang bisa memastikan sebuah perilaku benar atau salah.
+
+**Mengapa masalah seperti ini terus muncul.** Aplikasinya terlalu mudah percaya: pada apa yang dikirim pengguna, pada jawaban AI, dan pada tampilan layar. Pemisahan antar perusahaan hanya dijaga dengan kebiasaan, bukan dengan pagar. Kegagalan ditelan diam-diam. Dan tidak ada yang tertulis tentang apa yang dianggap benar.
+
+**Arti tingkat keparahan.** P0: tidak bisa dipakai sama sekali. P1: tampak berjalan tetapi datanya atau logikanya salah, atau hanya bisa dipakai dengan akal-akalan. P2: berjalan dengan masalah kecil. P3: hanya soal tampilan.
+
+**Keadaan sekarang.** Hampir semuanya sudah diperbaiki: masalah paling parah beres, dan 15 dari 16 masalah besar beres. Yang belum: aturan tentang izin merekam kandidat dan berapa lama data disimpan. Itu keputusan pemilik produk, bukan keputusan insinyur. Masalah kecil lainnya dicatat dengan urutan prioritas.
+
+**Yang tidak bisa saya pastikan.** Wawancara suara dengan AI sungguhan belum bisa diuji dari awal sampai akhir, jadi bagian itu tetap diungkap sebagai risiko.
+
+---
+
 Cakupan: `api/` (Rails API + Sidekiq + proxy WebSocket ke LLM audio langsung) dan `web/` (SPA React), dibaca bersama-sama.
 Bahasa severity mengikuti brief (P0 blocker / P1 major / P2 minor / P3 kosmetik; setiap masalah integritas data minimal P1).
 

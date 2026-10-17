@@ -1,5 +1,26 @@
 # 03 — Keputusan Rilis v1.0.0
 
+## Ringkasan dalam bahasa sederhana
+
+*Rincian teknis dan tautan bukti ada di bagian-bagian di bawahnya.*
+
+**Keputusan: belum boleh dirilis.**
+
+Bayangkan sebuah restoran yang dapurnya sudah dibersihkan dan semua alarm kini diam. Tetapi **izin usahanya belum ada**, dan **dapurnya belum pernah dicoba dari awal sampai akhir** dengan peralatan sungguhan. Restoran itu belum boleh dibuka untuk umum.
+
+**Dua alasan:**
+
+1. **Belum ada aturan tertulis tentang izin dan penyimpanan data.** Aplikasi ini merekam suara orang. Harus ada keputusan: apakah kandidat harus setuju dulu, dan berapa lama datanya disimpan. Itu keputusan pemilik produk. Saya tidak berhak menerima risikonya atas nama perusahaan.
+2. **Wawancara suara belum dicoba lengkap.** Bagian penilaian dengan AI sudah dicoba dengan model sungguhan (7 dari 8 kali berhasil, satu gagal karena jaringan). Tetapi alur suara dari mikrofon sampai ke AI belum pernah dijalankan dengan peralatan sungguhan.
+
+**Supaya boleh dirilis:** (a) coba wawancara suara sekali dari awal sampai akhir lalu catat hasilnya, dan (b) pemilik produk menulis aturan izin dan penyimpanan data, atau orang yang berwenang menerima risikonya secara tertulis dengan **nama dan batas waktu**.
+
+**Siapa yang menanggung risiko bila dirilis sekarang?** Tidak ada, karena tidak ada yang menerimanya. Itulah sebabnya statusnya "diblokir".
+
+**Mengapa jawabannya bisa dipercaya.** Keputusan ini dihitung oleh robot dari fakta, bukan ditulis tangan. Robot yang sama bisa dipakai lagi untuk versi berikutnya. Saya juga mencatat kesalahan saya sendiri selama pengerjaan, misalnya sempat mengira tidak ada masalah paling parah padahal ada, dan satu usulan perubahan yang sempat lolos tanpa lengkap.
+
+---
+
 ## Keputusan
 
 **BLOCKED. Versi ini tidak boleh dirilis ke klien atau ke pengguna sungguhan.**

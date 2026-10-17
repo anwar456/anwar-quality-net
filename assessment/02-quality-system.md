@@ -1,5 +1,23 @@
 # 02 — Sistem Kualitas (quality net)
 
+## Ringkasan dalam bahasa sederhana
+
+*Rincian teknis ada di bagian 1 sampai 6 di bawahnya.*
+
+Sistem pengaman ini seperti pemeriksaan berlapis di bandara. Ada tiga lapis:
+
+1. **Pintu masuk, sebelum sebuah perubahan diterima.** Setiap usulan perubahan harus membawa empat hal: tulisan tentang apa yang ingin dicapai, contoh yang menjelaskan hasil yang benar, rencana singkat, dan tes untuk memeriksanya. Kalau ada yang kurang, perubahan ditolak otomatis. Saya peragakan dengan dua usulan: satu ditolak, satu diterima.
+2. **Alarm otomatis, setiap kali ada perubahan.** Sebuah robot menjalankan lebih dari 160 pemeriksaan: apakah aplikasi bisa menyala, apakah data satu perusahaan aman dari perusahaan lain, apakah penilaian kandidat masuk akal, dan seterusnya. Merah berarti ada yang salah, hijau berarti aman.
+3. **Pemeriksa rilis, saat sebuah versi diberi nomor.** Robot memutuskan "boleh dirilis" atau "diblokir" berdasarkan fakta, bukan perasaan. Hasilnya ada di dokumen 03.
+
+**Buktinya bekerja.** Di awal, lebih dari 20 pemeriksaan merah, masing-masing karena masalah nyata. Setelah masalahnya diperbaiki satu per satu, semuanya hijau. **Tidak ada pemeriksaan yang dihapus atau dilonggarkan** supaya terlihat hijau. Riwayatnya bisa dilihat di GitHub, tab *Actions*.
+
+**Yang tidak dijaga sistem ini.** Wawancara suara langsung (belum bisa diuji otomatis) dan apakah penilaian AI benar-benar tepat.
+
+**Satu pelajaran jujur.** Salah satu usulan perubahan sempat masuk padahal ditolak pemeriksa, karena kunci pintunya (proteksi cabang `main`) belum dipasang. Setelah dipasang, usulan yang tidak lengkap tidak bisa digabung. Kejadian itu saya catat apa adanya di dokumen ini.
+
+---
+
 Ringkas: dua bagian yang saling menutup. **Gate workflow** memastikan sebuah perubahan tidak bisa maju tanpa inputnya
 (spec, acceptance criteria, rencana desain, tes). **Jaring tes/CI** memastikan perubahan yang sudah punya input tidak
 merusak jalur kritis. Setiap check kecil, melindungi satu kelas kegagalan yang nyata, dan menyebut apa yang sengaja tidak
