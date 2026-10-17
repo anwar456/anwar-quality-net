@@ -83,8 +83,16 @@ akibat nama helper bertabrakan dengan method internal Rails, diperbaiki sebelum 
 
 Repo: https://github.com/anwar456/anwar-quality-net
 
-- **Gate DoR** diperagakan dengan dua PR sungguhan (satu diblokir, satu lolos). Tautannya dicatat di `03-release-decision.md`.
-- Gate-nya diuji sendiri (13 kasus untuk DoR, 4 untuk keterlacakan, 4 untuk pemindai identifier, 3 untuk token dev, 4 untuk lint workflow, ditambah kasus untuk gate itu sendiri sebagai kode produksi).
+Gate DoR diperagakan pada pull request sungguhan, dengan satu pelajaran yang saya catat apa adanya:
+
+| PR | Hasil gate | Keterangan |
+|---|---|---|
+| [#1](https://github.com/anwar456/anwar-quality-net/pull/1) `demo/gate-blocked` | **diblokir** | Hanya mengubah kode, tanpa spec, kriteria penerimaan, rencana desain, dan tes. *Definition of Ready* merah dengan empat alasan tertulis; dibiarkan terbuka sebagai bukti |
+| [#2](https://github.com/anwar456/anwar-quality-net/pull/2) `demo/gate-passes` | **diblokir, tetapi ter-merge** | Perubahan yang sama dengan spec dan tes, tetapi deskripsi PR yang terisi otomatis oleh GitHub (isi pesan commit, lalu template kosong) tidak memuat bagian wajib, jadi gate memblokirnya, dan PR ter-merge karena perlindungan `main` belum aktif. **Temuan: gate hanya mengunci bila branch protection aktif.** Sesudahnya ruleset `protect-main` dipasang (nama check yang diwajibkan sempat salah huruf besar, dan dikoreksi) |
+| [#3](https://github.com/anwar456/anwar-quality-net/pull/3) `demo/gate-passes` | **lolos** | Semua 7 check hijau termasuk *Definition of Ready*; ter-merge. Isinya perbaikan nyata pada gate itu sendiri (`SPEC-010`): sebuah judul yang muncul dua kali di deskripsi (isi commit lalu template) tidak boleh membuat salinan kosong menimpa yang terisi. Tes ditulis lebih dulu dan merah, lalu hijau |
+
+Gate-nya sendiri diuji: 15 kasus untuk DoR, 4 keterlacakan, 4 pemindai identifier, 3 token dev, 4 lint workflow, 10 gate rilis.
+Gate rilis bekerja pada tag, bukan pada PR; hasilnya di `03-release-decision.md`.
 
 ## 6. Red → green
 
