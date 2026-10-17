@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import LevelRadio from "./LevelRadio";
 import CustomSkillForm from "./CustomSkillForm";
 import { cn } from "@/lib/utils";
+import { formatSkillCode } from "@/lib/skillCode";
 import type { AssessmentFormValues } from "@/pages/assessments/AssessmentNewPage";
 
 interface SkillCardProps {
@@ -54,7 +55,7 @@ export default function SkillCard({ index, id, form, onRemove }: SkillCardProps)
           <div className="flex items-center gap-2">
             <span className="font-medium text-sm truncate">{skillLabel}</span>
             <span className="text-xs text-muted-foreground shrink-0">
-              {isCustom ? "Custom" : skill?.skill_id ? `SK-${String(skill.skill_id).padStart(3, "0")}` : ""}
+              {isCustom ? "Custom" : formatSkillCode(skill?.skill_id)}
             </span>
           </div>
         </div>
