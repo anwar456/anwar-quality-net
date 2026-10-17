@@ -1,21 +1,23 @@
-# SPEC-00X - Title
+# SPEC-00X - Judul
 
-Audit items: R-..
-Status: draft | accepted
+Temuan audit: R-..
+Status: draf | diterima
 
-## Problem
-What is wrong or missing, for whom, and how we know (evidence).
+## Masalah
+Apa yang salah atau hilang, bagi siapa, dan bagaimana kita tahu (bukti).
 
-## Rules
-Numbered, testable statements of the behaviour.
+## Aturan
+Pernyataan perilaku yang bernomor dan bisa diuji.
 
-## Acceptance criteria
-Given <state>
-When <action>
-Then <outcome - including what is persisted>
+## Kriteria penerimaan
+Given <keadaan awal>
+When <tindakan>
+Then <hasil yang bisa diamati, termasuk apa yang tersimpan>
 
-## Out of scope
-What this deliberately does not change.
+(Kata Given/When/Then tetap dalam bahasa Inggris karena dibaca oleh gate Definition of Ready; isinya boleh bahasa Indonesia.)
 
-## Checks
-Which automated check proves each rule.
+## Di luar cakupan
+Apa yang sengaja tidak diubah.
+
+## Pemeriksa
+Check otomatis mana yang membuktikan tiap aturan.

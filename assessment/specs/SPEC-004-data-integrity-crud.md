@@ -1,33 +1,33 @@
-# SPEC-004 - What the form shows is what is stored
+# SPEC-004 - Yang ditampilkan form adalah yang tersimpan
 
-Audit items: R-03, R-10
-Status: accepted
+Temuan audit: R-03, R-10
+Status: diterima
 
-## Problem
-Removing a skill from the assessment or vacancy edit form only removes it from the screen: the API deletes nested
-records only when it receives `{ id, _destroy: true }`, which the web never sends. Deleting an assessment that has
-candidates answers "deleted" although the model refused.
+## Masalah
+Menghapus sebuah skill dari form edit assessment atau vacancy hanya menghapusnya dari layar: API menghapus record
+bersarang hanya ketika menerima `{ id, _destroy: true }`, yang tidak pernah dikirim web. Menghapus assessment yang
+sudah punya kandidat dijawab "deleted" padahal model menolaknya.
 
-## Rules
-1. When a user removes an existing skill in an edit form, the submitted payload contains `{ id, _destroy: true }` for it, and only for it.
-2. Deleting a record that the model refuses to delete answers 409 with the reason, and the record remains.
-3. The API contract for nested attributes is documented in the OpenAPI file and checked by the API specs.
+## Aturan
+1. Ketika pengguna menghapus skill yang sudah ada di form edit, payload yang dikirim memuat `{ id, _destroy: true }` untuk skill itu, dan hanya untuk skill itu.
+2. Menghapus record yang ditolak oleh model dijawab 409 beserta alasannya, dan record tetap ada.
+3. Kontrak API untuk atribut bersarang didokumentasikan di berkas OpenAPI dan diperiksa oleh spec API.
 
-## Acceptance criteria
-Given an assessment with two skills open in the edit form
-When the user removes the first skill and saves
-Then the update request contains the first skill's id with `_destroy: true` and does not destroy the second.
+## Kriteria penerimaan
+Given sebuah assessment dengan dua skill yang terbuka di form edit
+When pengguna menghapus skill pertama dan menyimpan
+Then request update memuat id skill pertama dengan `_destroy: true` dan tidak menghancurkan skill kedua.
 
-Given a vacancy with two expected skills open in the edit form
-When the user removes the first and saves
-Then the update request destroys it, so fit/gap no longer compares against it.
+Given sebuah vacancy dengan dua skill yang diharapkan terbuka di form edit
+When pengguna menghapus yang pertama dan menyimpan
+Then request update menghancurkannya, sehingga fit/gap tidak lagi membandingkan dengannya.
 
-Given an assessment that already has candidate sessions
-When an admin deletes it
-Then the answer is 409 and the assessment still exists.
+Given sebuah assessment yang sudah punya sesi kandidat
+When seorang admin menghapusnya
+Then jawabannya 409 dan assessment itu masih ada.
 
-## Out of scope
-A confirmation dialog or soft-delete; both are product decisions.
+## Di luar cakupan
+Dialog konfirmasi atau soft-delete; keduanya keputusan produk.
 
-## Checks
+## Pemeriksa
 web/src/pages/assessments/AssessmentEditPage.test.tsx, web/src/pages/vacancies/VacancyEditPage.test.tsx, api/spec/critical/session_lifecycle_spec.rb

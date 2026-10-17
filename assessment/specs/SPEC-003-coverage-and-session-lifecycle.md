@@ -1,47 +1,48 @@
-# SPEC-003 - Coverage means evidence; a session ends for a recorded, true reason
+# SPEC-003 - Coverage berarti ada bukti; sesi berakhir karena alasan yang tercatat dan benar
 
-Audit items: R-06, R-09, R-12
-Known consequence of rule 1: a partial skill that left the analyzer's 6-turn window is not re-evaluated, so an interview may run to its time limit instead of ending early. Accepted; follow-up is to give the analyzer more context for partial skills.
-Status: accepted
+Temuan audit: R-06, R-09, R-12
+Status: diterima
 
-## Problem
-Partial skills are promoted to "covered" once probe_count reaches 4 without any evidence check, and the public
-`audio_complete` endpoint ends any session, including one that never started, recording it as `all_covered`.
+## Masalah
+Skill partial dinaikkan menjadi "covered" begitu probe_count mencapai 4 tanpa pemeriksaan bukti apa pun, dan endpoint
+publik `audio_complete` mengakhiri sesi apa pun, termasuk yang belum pernah dimulai, dan mencatatnya sebagai
+`all_covered`. Saat assessor mengakhiri sesi, hanya baris database yang berubah: koneksi suara kandidat tetap hidup.
 
-## Rules
-1. A skill becomes covered only through the analyzer's decision, subject to the state machine (forward only, two probes before leaving "initiated"). No job promotes a skill by counting probes alone.
-2. `POST /sessions/:token/audio_complete` ends a session only if it is active and every configured skill is covered; otherwise it answers 409 and changes nothing. Ending an already ended session stays idempotent (200).
-   Known gap: when the live socket closes the interview on its own (the AI said goodbye early), it still ends the session itself after its 30-second poll and records `all_covered`. That label can be wrong (audit R-18, follow-up).
-3. `end_reason` states what actually happened.
-4. When a session is ended by anyone other than the live connection itself (an assessor, a job), the live connection follows within a few seconds: the browser is told (`session_ended` with the recorded reason) and both the browser and the model connections are closed. It is announced once. The connection checks the database row every 3 seconds, off the event-loop thread.
+## Aturan
+1. Sebuah skill menjadi covered hanya lewat keputusan analyzer, tunduk pada state machine (hanya maju, dua probe sebelum meninggalkan "initiated"). Tidak ada job yang menaikkan skill hanya dengan menghitung probe.
+   Konsekuensi yang diketahui dan diterima: skill partial yang keluar dari jendela 6 turn analyzer tidak dievaluasi ulang, sehingga wawancara bisa berjalan sampai batas waktunya alih-alih berakhir lebih awal. Tindak lanjut: beri analyzer lebih banyak konteks untuk skill partial.
+2. `POST /sessions/:token/audio_complete` mengakhiri sesi hanya bila sesi aktif dan setiap skill terkonfigurasi covered; selain itu jawabannya 409 dan tidak ada yang berubah. Mengakhiri sesi yang sudah berakhir tetap idempoten (200).
+   Celah yang diketahui: ketika socket langsung menutup wawancara sendiri (AI berpamitan lebih awal), ia tetap mengakhiri sesi sendiri setelah polling 30 detik dan mencatat `all_covered`. Label itu bisa salah (R-18 di audit, tindak lanjut).
+3. `end_reason` menyatakan apa yang sebenarnya terjadi.
+4. Ketika sesi diakhiri oleh pihak selain koneksi langsung itu sendiri (assessor, sebuah job), koneksi langsung ikut berakhir dalam beberapa detik: browser diberi tahu (`session_ended` dengan alasan yang tercatat) dan koneksi browser serta koneksi model ditutup. Pemberitahuan hanya dikirim sekali. Koneksi memeriksa baris database setiap 3 detik, di luar thread event loop.
 
-## Acceptance criteria
-Given a partial skill with 5 probes
-When the coverage analyzer job runs and reports no change
-Then the skill is still partial.
+## Kriteria penerimaan
+Given sebuah skill partial dengan 5 probe
+When job analyzer coverage berjalan dan melaporkan tidak ada perubahan
+Then skill itu tetap partial.
 
-Given a session that never started
-When the candidate endpoint audio_complete is called with its token
-Then the answer is 409, the session is still pending and no portfolio exists.
+Given sebuah sesi yang belum pernah dimulai
+When endpoint kandidat audio_complete dipanggil dengan tokennya
+Then jawabannya 409, sesi tetap pending, dan tidak ada portfolio.
 
-Given an active session with one open configured skill
-When audio_complete is called
-Then the answer is 409 and the session is still active.
+Given sebuah sesi aktif dengan satu skill terkonfigurasi yang masih terbuka
+When audio_complete dipanggil
+Then jawabannya 409 dan sesi tetap aktif.
 
-Given an active session whose configured skills are all covered
-When audio_complete is called
-Then the session is ended with reason all_covered.
+Given sebuah sesi aktif yang semua skill terkonfigurasinya covered
+When audio_complete dipanggil
+Then sesi diakhiri dengan alasan all_covered.
 
-Given a candidate connected to a running interview
-When an assessor ends the session
-Then the candidate's connection receives session_ended with the assessor's reason, the model connection is closed, and the browser connection is closed.
+Given seorang kandidat yang terhubung ke wawancara yang sedang berjalan
+When seorang assessor mengakhiri sesi
+Then koneksi kandidat menerima session_ended dengan alasan dari assessor, koneksi model ditutup, dan koneksi browser ditutup.
 
-Given the middleware ended the session itself (for example at the time limit)
-When it later notices the row is ended
-Then it does not announce the end a second time.
+Given middleware sendiri yang mengakhiri sesi (misalnya pada batas waktu)
+When kemudian ia melihat baris sudah berstatus ended
+Then ia tidak mengumumkan akhir sesi untuk kedua kalinya.
 
-## Out of scope
-Driving a real WebSocket and the real model connection: R-12 is verified with a fake socket (the middleware's own logic), not end to end.
+## Di luar cakupan
+Menjalankan WebSocket dan koneksi model yang sungguhan: R-12 diverifikasi dengan socket palsu (logika middleware itu sendiri), bukan end-to-end.
 
-## Checks
+## Pemeriksa
 api/spec/critical/coverage_spec.rb, api/spec/critical/session_lifecycle_spec.rb, api/spec/critical/live_session_spec.rb

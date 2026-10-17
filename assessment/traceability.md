@@ -1,9 +1,12 @@
-# Traceability: audit item -> spec -> check
+# Keterlacakan: temuan audit -> spec -> pemeriksa
 
-Every P0/P1 item in `assessment/01-audit.md` has a row here (enforced by `web/quality/checks/traceability.cjs`).
-A check cell is either a file that exists, or `none: <reason>`, which is a disclosed gap, not a pass.
+Setiap temuan P0/P1 di `assessment/01-audit.md` punya satu baris di sini (dijaga oleh `web/quality/checks/traceability.cjs`).
+Sel pemeriksa berisi berkas yang ada, atau `none: <alasan>`, yaitu celah yang diungkap, bukan kelolosan.
 
-| Audit | Sev | Spec | Check | Status |
+Kolom Status dibaca mesin oleh gate rilis lewat kata pertamanya: `fixed` (diperbaiki), `mitigated` (dimitigasi, belum tuntas),
+atau `open` (terbuka). Sisa kalimat adalah penjelasan.
+
+| Audit | Sev | Spec | Pemeriksa | Status |
 |---|---|---|---|---|
 | R-31 | P0 | assessment/specs/SPEC-006-production-readiness.md | api/spec/critical/boot_spec.rb | fixed |
 | R-01 | P1 | assessment/specs/SPEC-001-tenant-isolation.md | api/spec/critical/tenant_isolation_spec.rb | fixed |
@@ -17,8 +20,8 @@ A check cell is either a file that exists, or `none: <reason>`, which is a discl
 | R-09 | P1 | assessment/specs/SPEC-003-coverage-and-session-lifecycle.md | api/spec/critical/session_lifecycle_spec.rb | fixed |
 | R-10 | P1 | assessment/specs/SPEC-004-data-integrity-crud.md | api/spec/critical/session_lifecycle_spec.rb | fixed |
 | R-11 | P1 | assessment/specs/SPEC-002-portfolio-integrity.md | api/spec/critical/portfolio_generation_spec.rb | fixed |
-| R-12 | P1 | assessment/specs/SPEC-003-coverage-and-session-lifecycle.md | api/spec/critical/live_session_spec.rb | fixed (fake socket; not verified end to end) |
+| R-12 | P1 | assessment/specs/SPEC-003-coverage-and-session-lifecycle.md | api/spec/critical/live_session_spec.rb | fixed (socket palsu; belum diuji end-to-end) |
 | R-13 | P1 | assessment/specs/SPEC-006-production-readiness.md | api/spec/tasks/create_admin_task_spec.rb | fixed |
 | R-14 | P1 | assessment/specs/SPEC-007-candidate-hardware-check.md | web/src/utils/internetSpeedTest.test.ts | fixed |
-| R-15 | P1 | assessment/specs/_template.md | web/quality/dor/check.cjs | open: consent, retention and NFRs are not specified (product decision); the gate stops new work without a spec |
+| R-15 | P1 | assessment/specs/_template.md | web/quality/dor/check.cjs | open: consent, retensi, dan NFR belum ditentukan (keputusan produk); gate mencegah pekerjaan baru tanpa spec |
 | R-16 | P1 | assessment/specs/SPEC-008-report-export.md | api/spec/requests/api/v1/portfolios_spec.rb | fixed |

@@ -1,30 +1,30 @@
-# SPEC-008 - A reviewed portfolio can always be exported
+# SPEC-008 - Portfolio yang sudah di-review selalu bisa diekspor
 
-Audit items: R-16
-Status: accepted
+Temuan audit: R-16
+Status: diterima
 
-## Problem
-The PDF export drew text with Prawn's built-in fonts, which can only draw Windows-1252 characters and raise on any
-other. The line shown for an assessor override contained an arrow, and candidate quotes are arbitrary text (symbols,
-other scripts, emoji). So the export answered 500 for every portfolio the assessor had reviewed (an override exists),
-and for any quote outside Windows-1252, leaving only the JSON export.
+## Masalah
+Ekspor PDF menggambar teks dengan font bawaan Prawn, yang hanya bisa menggambar karakter Windows-1252 dan melempar
+error untuk karakter lain. Baris yang ditampilkan untuk override assessor memuat sebuah panah, dan kutipan kandidat
+adalah teks bebas (simbol, aksara lain, emoji). Akibatnya ekspor menjawab 500 untuk setiap portfolio yang sudah
+di-review assessor (ada override), dan untuk kutipan apa pun di luar Windows-1252, sehingga hanya ekspor JSON yang tersisa.
 
-## Rules
-1. The PDF export never fails because of the text it contains. A character the PDF font cannot draw is replaced by `?`.
-2. The JSON export is the lossless one: it keeps the original text.
-3. The override line reads "AI: L3, assessor override: L4" (no symbol outside the font).
+## Aturan
+1. Ekspor PDF tidak pernah gagal karena teks yang dimuatnya. Karakter yang tidak bisa digambar font PDF diganti dengan `?`.
+2. Ekspor JSON adalah yang tanpa kehilangan: ia mempertahankan teks aslinya.
+3. Baris override berbunyi "AI: L3, assessor override: L4" (tanpa simbol di luar font).
 
-## Acceptance criteria
-Given a completed portfolio with an assessor override
-When the assessor exports it as PDF
-Then the answer is 200 and the body is a PDF.
+## Kriteria penerimaan
+Given sebuah portfolio selesai dengan override assessor
+When assessor mengekspornya sebagai PDF
+Then jawabannya 200 dan bodinya adalah PDF.
 
-Given a candidate quote containing symbols, CJK text and an emoji
-When the assessor exports the portfolio as PDF
-Then the answer is 200, the unsupported characters appear as `?`, and the JSON export still holds the original quote.
+Given sebuah kutipan kandidat yang memuat simbol, aksara CJK, dan emoji
+When assessor mengekspor portfolio sebagai PDF
+Then jawabannya 200, karakter yang tidak didukung muncul sebagai `?`, dan ekspor JSON tetap memuat kutipan aslinya.
 
-## Out of scope
-Embedding a Unicode font so that other scripts are drawn instead of replaced (the sensible next step).
+## Di luar cakupan
+Menyematkan font Unicode agar aksara lain digambar alih-alih diganti (langkah berikutnya yang masuk akal).
 
-## Checks
+## Pemeriksa
 api/spec/requests/api/v1/portfolios_spec.rb ("PDF export of a portfolio with an assessor override and text the PDF font cannot draw")

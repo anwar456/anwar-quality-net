@@ -1,29 +1,29 @@
-# SPEC-005 - The invite link opens the interview; web and API agree on field names
+# SPEC-005 - Tautan undangan membuka wawancara; web dan API sepakat soal nama field
 
-Audit items: R-07, R-08
-Status: accepted
+Temuan audit: R-07, R-08
+Status: diterima
 
-## Problem
-The invite URL is built from the API's base URL, but the interview page is served by the web app, so every link a
-candidate receives is dead. The fit/gap table reads `required_level` while the API sends `expected_level`, so the
-required level is blank on every row.
+## Masalah
+URL undangan dibangun dari URL dasar API, padahal halaman wawancara dilayani oleh aplikasi web, sehingga setiap
+tautan yang diterima kandidat mati. Tabel fit/gap membaca `required_level` sedangkan API mengirim `expected_level`,
+sehingga level yang dibutuhkan kosong di setiap baris.
 
-## Rules
-1. The invite URL is `WEB_BASE_URL + /interview/:token`. `WEB_BASE_URL` is a separate setting from `APP_BASE_URL` (the API origin). In production the app refuses to boot when it is missing, is not an http(s) URL, or is the same origin as `APP_BASE_URL`.
-2. The OpenAPI document (`api/swagger/v1/swagger.yaml`) is generated from the request specs and is the contract between the two services; CI fails if it is stale.
-3. A web component that renders an API response is tested with a body generated from that contract, not with a hand-written fixture.
+## Aturan
+1. URL undangan adalah `WEB_BASE_URL + /interview/:token`. `WEB_BASE_URL` adalah pengaturan terpisah dari `APP_BASE_URL` (origin API). Di produksi aplikasi menolak boot bila nilainya kosong, bukan URL http(s), atau sama origin dengan `APP_BASE_URL`.
+2. Dokumen OpenAPI (`api/swagger/v1/swagger.yaml`) dihasilkan dari spec request dan menjadi kontrak antara kedua layanan; CI gagal bila dokumen itu basi.
+3. Komponen web yang menampilkan respons API diuji dengan bodi yang dihasilkan dari kontrak itu, bukan dengan fixture tulis tangan.
 
-## Acceptance criteria
-Given WEB_BASE_URL and APP_BASE_URL are different origins
-When an assessor invites a candidate
-Then the invite URL starts with WEB_BASE_URL.
+## Kriteria penerimaan
+Given WEB_BASE_URL dan APP_BASE_URL adalah origin yang berbeda
+When seorang assessor mengundang kandidat
+Then URL undangan diawali dengan WEB_BASE_URL.
 
-Given a fit/gap row with expected level 4 and candidate level 2
-When the comparison table is rendered
-Then both L4 and L2 are visible.
+Given sebuah baris fit/gap dengan level yang dibutuhkan 4 dan level kandidat 2
+When tabel perbandingan ditampilkan
+Then L4 dan L2 keduanya terlihat.
 
-## Out of scope
-Versioning the API; generating TypeScript types from the contract (a sensible next step).
+## Di luar cakupan
+Versi API; menghasilkan tipe TypeScript dari kontrak (langkah berikutnya yang masuk akal).
 
-## Checks
-api/spec/critical/session_lifecycle_spec.rb, web/src/components/fitgap/ComparisonTable.contract.test.tsx, CI step "OpenAPI document is up to date"
+## Pemeriksa
+api/spec/critical/session_lifecycle_spec.rb, web/src/components/fitgap/ComparisonTable.contract.test.tsx, langkah CI "OpenAPI document is up to date"

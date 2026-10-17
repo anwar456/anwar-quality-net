@@ -1,33 +1,33 @@
-# SPEC-010 - The Definition of Ready gate reads a pull request body as written
+# SPEC-010 - Gate Definition of Ready membaca isi PR apa adanya
 
-Audit items: none (found by using the gate on a real pull request)
-Status: accepted
+Temuan audit: tidak ada (ditemukan dengan memakai gate pada pull request sungguhan)
+Status: diterima
 
-## Problem
-GitHub fills a new pull request with the commit message when the branch has one commit, and then appends the
-repository's template below it. The gate split the body at each `## Heading` and kept the last occurrence of a
-heading, so the empty template section below the author's filled section replaced it: a pull request that
-carried every input in its commit message would have been reported as carrying none. Found while looking at why
-a real pull request, opened with the auto-filled body, was blocked. That block was correct (its commit message had
-no sections, so the template stayed empty), but it showed that a body can contain a heading twice and that the
-last copy won.
+## Masalah
+GitHub mengisi pull request baru dengan pesan commit bila branch hanya punya satu commit, lalu menambahkan template
+repositori di bawahnya. Gate memecah isi PR di setiap `## Judul` dan menyimpan kemunculan terakhir dari sebuah judul,
+sehingga bagian template yang kosong di bawah bagian yang sudah diisi penulis menimpanya: sebuah PR yang membawa
+semua input di pesan commit-nya akan dilaporkan tidak membawa apa pun. Ditemukan ketika memeriksa mengapa sebuah PR
+sungguhan, yang dibuka dengan isi otomatis, diblokir. Pemblokiran itu benar (pesan commit-nya tidak punya bagian,
+sehingga template tetap kosong), tetapi ia memperlihatkan bahwa sebuah judul bisa muncul dua kali dan salinan
+terakhir yang menang.
 
-## Rules
-1. If a heading appears more than once in the body, the content under all of its occurrences is joined, in order.
-2. An empty or placeholder occurrence therefore never hides a filled one, and a filled occurrence is never required to be the last.
-3. A body whose every occurrence of a required heading is empty or a placeholder is still blocked.
+## Aturan
+1. Bila sebuah judul muncul lebih dari sekali, isi di bawah semua kemunculannya digabung, berurutan.
+2. Kemunculan yang kosong atau placeholder karenanya tidak pernah menyembunyikan yang terisi, dan yang terisi tidak harus yang terakhir.
+3. Isi PR yang setiap kemunculan judul wajibnya kosong atau placeholder tetap diblokir.
 
-## Acceptance criteria
-Given a pull request body with a filled Spec, Acceptance criteria and Design plan, followed by the empty template
-When the Definition of Ready check runs
-Then it passes.
+## Kriteria penerimaan
+Given isi PR dengan Spec, Acceptance criteria, dan Design plan yang terisi, diikuti template kosong
+When pemeriksaan Definition of Ready berjalan
+Then ia lolos.
 
-Given a pull request body that contains only the empty template, twice
-When the Definition of Ready check runs
-Then it is blocked, with one reason for the spec, one for the acceptance criteria and one for the design plan.
+Given isi PR yang hanya berisi template kosong, dua kali
+When pemeriksaan Definition of Ready berjalan
+Then ia diblokir, dengan satu alasan untuk spec, satu untuk kriteria penerimaan, dan satu untuk rencana desain.
 
-## Out of scope
-Judging whether the spec or the plan is any good; the gate only checks that they exist and are not placeholders.
+## Di luar cakupan
+Menilai apakah spec atau rencananya bagus; gate hanya memeriksa bahwa keduanya ada dan bukan placeholder.
 
-## Checks
+## Pemeriksa
 web/quality/dor/check.test.cjs

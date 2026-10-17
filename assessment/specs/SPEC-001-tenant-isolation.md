@@ -1,43 +1,43 @@
-# SPEC-001 - Tenant isolation and login binding
+# SPEC-001 - Isolasi tenant dan pengikatan login
 
-Audit items: R-01, R-02
-Status: accepted
+Temuan audit: R-01, R-02
+Status: diterima
 
-## Problem
-Portfolios, portfolio skills and fit/gap reports have no tenant of their own and are looked up by bare id, so an
-assessor of one organisation can read, export and change another organisation's candidates. Login takes the tenant
-from a client-supplied header, so any admin can obtain a token for any organisation.
+## Masalah
+Portfolio, skill portfolio, dan laporan fit/gap tidak punya tenant sendiri dan dicari hanya dengan id, sehingga
+seorang assessor dari satu organisasi bisa membaca, mengekspor, dan mengubah kandidat milik organisasi lain. Login
+mengambil tenant dari header yang dikirim klien, sehingga admin mana pun bisa mendapat token untuk organisasi mana pun.
 
-## Rules
-1. Every record reachable by id through the API belongs to exactly one tenant; a lookup from another tenant behaves as "not found" (404), never 403, so existence is not disclosed.
-2. Child records (portfolio, portfolio skill, fit/gap report, override) inherit their tenant from the session they belong to; they are resolved through that tenant-scoped parent.
-3. The tenant of a login is the tenant of the user (`users.tenant_id`). A `X-Tenant-Scheme` header sent by the client is ignored for authentication. A user who is not assigned to an organization cannot log in (403).
-3a. A token without a tenant (`scheme`) claim is refused; the `X-Tenant-Scheme` header never completes a token.
-4. Background jobs act on ids they were given by an already-checked request; they do not widen access.
+## Aturan
+1. Setiap record yang bisa dijangkau lewat id melalui API milik tepat satu tenant; pencarian dari tenant lain berperilaku sebagai "tidak ditemukan" (404), bukan 403, sehingga keberadaannya tidak terungkap.
+2. Record turunan (portfolio, skill portfolio, laporan fit/gap, override) mewarisi tenant dari sesi tempat ia berada; ia dicari lewat induk yang sudah ter-scope tenant.
+3. Tenant sebuah login adalah tenant milik pengguna (`users.tenant_id`). Header `X-Tenant-Scheme` yang dikirim klien diabaikan untuk autentikasi. Pengguna yang tidak ditugaskan ke organisasi tidak bisa login (403).
+3a. Token tanpa claim tenant (`scheme`) ditolak; header `X-Tenant-Scheme` tidak pernah melengkapi sebuah token.
+4. Job latar belakang bekerja pada id yang diberikan oleh request yang sudah diperiksa; mereka tidak memperluas akses.
 
-## Acceptance criteria
-Given an admin of organisation A and a finished interview of organisation B
-When the admin requests B's portfolio export, fit/gap, fit/gap regeneration, fit/gap report or rating override by id
-Then every request answers 404, nothing is enqueued and no override row exists.
+## Kriteria penerimaan
+Given seorang admin organisasi A dan sebuah wawancara selesai milik organisasi B
+When admin itu meminta ekspor portfolio, fit/gap, regenerasi fit/gap, laporan fit/gap, atau override rating milik B lewat id
+Then setiap request dijawab 404, tidak ada job yang masuk antrean, dan tidak ada baris override.
 
-Given an admin of organisation A who is logged in
-When they log in sending `X-Tenant-Scheme` of organisation B
-Then the token's scheme claim is not B's scheme.
+Given seorang admin organisasi A yang sedang login
+When ia login sambil mengirim `X-Tenant-Scheme` milik organisasi B
+Then claim scheme pada token bukan scheme milik B.
 
-Given an admin of organisation A and an account that is not assigned to any organisation
-When the unassigned account logs in
-Then the answer is 403 and no token is issued.
+Given seorang admin organisasi A dan sebuah akun yang tidak ditugaskan ke organisasi mana pun
+When akun yang belum ditugaskan itu login
+Then jawabannya 403 dan tidak ada token yang diterbitkan.
 
-Given a signed token that has no scheme claim
-When it is used together with an X-Tenant-Scheme header
-Then the request is refused (403).
+Given sebuah token bertanda tangan yang tidak punya claim scheme
+When token itu dipakai bersama header X-Tenant-Scheme
+Then request ditolak (403).
 
-Given an admin of organisation A
-When they list assessments
-Then they only see A's assessments.
+Given seorang admin organisasi A
+When ia melihat daftar assessment
+Then ia hanya melihat assessment milik A.
 
-## Out of scope
-Row-level security in the database; the WebSocket endpoints (tracked as audit R-19).
+## Di luar cakupan
+Row-level security di database; endpoint WebSocket (dicatat sebagai R-19 di audit).
 
-## Checks
+## Pemeriksa
 api/spec/critical/tenant_isolation_spec.rb

@@ -1,42 +1,42 @@
-# SPEC-006 - The service starts in production and carries no secrets or foreign identifiers
+# SPEC-006 - Layanan bisa start di produksi dan tidak membawa rahasia atau identitas pihak lain
 
-Audit items: R-31, R-13, R-28
-Status: accepted
+Temuan audit: R-31, R-13, R-28
+Status: diterima
 
-## Problem
-Booting with the production settings fails twice (a constant whose name does not match its file, and a
-configuration call for a component that is not loaded). A login token can be compiled into the web bundle. The
-repository names the organisation that owns the exercise, its hosts and its registry.
+## Masalah
+Boot dengan setelan produksi gagal dua kali (sebuah konstanta yang namanya tidak cocok dengan nama berkasnya, dan
+sebuah pemanggilan konfigurasi untuk komponen yang tidak dimuat). Token login bisa ikut terkompilasi ke bundle web.
+Repositori menyebut nama organisasi pemilik latihan ini, host-nya, dan registry-nya.
 
-## Rules
-1. `rails zeitwerk:check` passes and the application boots with `RAILS_ENV=production` and only the production gem groups.
-2. No production web bundle contains `VITE_DEV_TOKEN`: the code reads it only behind `import.meta.env.DEV`, and because Vite publishes every `VITE_*` variable of the build environment (a library pulls in the whole `import.meta.env`), the production build itself refuses to run while that variable is set.
-3. No tracked file or path contains an identifier from the forbidden list (stored as hashes in web/quality/scan/forbidden-terms.sha256).
-4. A fresh installation can create its first assessor with `rails users:create_admin EMAIL=.. PASSWORD=.. SCHEME=..`: the admin is bound to the organization, the password is at least 12 characters, running it twice updates the same user, and bad input creates nothing.
+## Aturan
+1. `rails zeitwerk:check` lolos dan aplikasi boot dengan `RAILS_ENV=production` dan hanya grup gem produksi.
+2. Bundle web produksi tidak memuat `VITE_DEV_TOKEN`: kode hanya membacanya di balik `import.meta.env.DEV`, dan karena Vite menerbitkan setiap variabel `VITE_*` dari lingkungan build (sebuah library menarik seluruh `import.meta.env`), build produksi itu sendiri menolak berjalan selama variabel itu terisi.
+3. Tidak ada berkas atau path ter-track yang memuat identifier dari daftar terlarang (disimpan sebagai hash di web/quality/scan/forbidden-terms.sha256).
+4. Instalasi baru bisa membuat assessor pertamanya dengan `rails users:create_admin EMAIL=.. PASSWORD=.. SCHEME=..`: admin terikat ke organisasi, password minimal 12 karakter, menjalankannya dua kali memperbarui pengguna yang sama, dan input yang salah tidak membuat apa pun.
 
-## Acceptance criteria
-Given the production gem groups and production settings
-When the application is eager loaded
-Then it boots without error.
+## Kriteria penerimaan
+Given grup gem produksi dan setelan produksi
+When aplikasi dimuat penuh (eager load)
+Then ia boot tanpa error.
 
-Given a production build of the web app
-When the source is checked
-Then no unguarded read of VITE_DEV_TOKEN exists.
+Given build produksi aplikasi web
+When kode sumber diperiksa
+Then tidak ada pembacaan VITE_DEV_TOKEN tanpa penjaga.
 
-Given VITE_DEV_TOKEN is set in the environment of a production build
-When the build runs
-Then it stops with an error and publishes nothing.
+Given VITE_DEV_TOKEN terisi di lingkungan sebuah build produksi
+When build dijalankan
+Then ia berhenti dengan error dan tidak menerbitkan apa pun.
 
-Given a fresh installation with one organization and no users
-When the operator runs the create-admin task
-Then the admin can log in and the token carries that organization's scheme.
+Given instalasi baru dengan satu organisasi dan tanpa pengguna
+When operator menjalankan tugas create-admin
+Then admin bisa login dan token membawa scheme organisasi itu.
 
-Given the git-tracked files of the repository
-When the confidentiality scan runs
-Then it reports no forbidden identifier.
+Given berkas-berkas ter-track di repositori
+When pemindaian kerahasiaan berjalan
+Then ia tidak melaporkan identifier terlarang.
 
-## Out of scope
-Secret management of the real deployment (Kubernetes Secrets are owned by the platform team).
+## Di luar cakupan
+Pengelolaan rahasia pada deployment sungguhan (Kubernetes Secrets dimiliki tim platform).
 
-## Checks
-api/spec/critical/boot_spec.rb, api/spec/tasks/create_admin_task_spec.rb, CI job "API boots in production mode", web/quality/checks/no-dev-token.cjs, web/quality/scan/identifiers.cjs
+## Pemeriksa
+api/spec/critical/boot_spec.rb, api/spec/tasks/create_admin_task_spec.rb, job CI "API boots in production mode", web/quality/checks/no-dev-token.cjs, web/quality/scan/identifiers.cjs

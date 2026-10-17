@@ -1,33 +1,33 @@
-# SPEC-009 - A skill's code is shown once, as stored
+# SPEC-009 - Kode sebuah skill ditampilkan sekali, apa adanya
 
-Audit items: none (found while using the app; a cosmetic P3 that also serves as the demonstration of the PR gate)
-Status: accepted
+Temuan audit: tidak ada (ditemukan saat memakai aplikasi; P3 kosmetik yang sekaligus menjadi peragaan gate PR)
+Status: diterima
 
-## Problem
-The skill card shows a short code next to the skill name. Taxonomy skills already carry ids such as `SK-ENG-001`,
-but the card pads whatever it receives and prefixes it with `SK-` again, so the screen shows `SK-SK-ENG-001`. The
-card was written when skill ids were numbers.
+## Masalah
+Kartu skill menampilkan kode pendek di samping nama skill. Skill taksonomi sudah membawa id seperti `SK-ENG-001`,
+tetapi kartu mem-padding apa pun yang diterimanya lalu menambahkan awalan `SK-` lagi, sehingga layar menampilkan
+`SK-SK-ENG-001`. Kartu itu ditulis ketika id skill masih berupa angka.
 
-## Rules
-1. A taxonomy id (a string that already starts with a letter) is shown exactly as stored.
-2. A numeric id (a number, or a string of digits, as in older data) is shown as `SK-` followed by the number padded to three digits.
-3. A missing id shows nothing. A custom skill shows "Custom" (unchanged).
+## Aturan
+1. Id taksonomi (string yang sudah diawali huruf) ditampilkan persis seperti tersimpan.
+2. Id numerik (angka, atau string berisi digit, seperti pada data lama) ditampilkan sebagai `SK-` diikuti angka yang di-padding menjadi tiga digit.
+3. Id yang hilang tidak menampilkan apa pun. Skill custom menampilkan "Custom" (tidak berubah).
 
-## Acceptance criteria
-Given a skill from the taxonomy with the id SK-ENG-001
-When its card is shown
-Then the code reads SK-ENG-001, not SK-SK-ENG-001.
+## Kriteria penerimaan
+Given sebuah skill dari taksonomi dengan id SK-ENG-001
+When kartunya ditampilkan
+Then kodenya terbaca SK-ENG-001, bukan SK-SK-ENG-001.
 
-Given an older skill whose id is the number 7
-When its card is shown
-Then the code reads SK-007.
+Given sebuah skill lama yang id-nya angka 7
+When kartunya ditampilkan
+Then kodenya terbaca SK-007.
 
-Given a skill with no id
-When its card is shown
-Then no code is shown.
+Given sebuah skill tanpa id
+When kartunya ditampilkan
+Then tidak ada kode yang ditampilkan.
 
-## Out of scope
-Renaming ids, or changing how custom skills are labelled.
+## Di luar cakupan
+Mengganti nama id, atau mengubah cara skill custom diberi label.
 
-## Checks
+## Pemeriksa
 web/src/lib/skillCode.test.ts

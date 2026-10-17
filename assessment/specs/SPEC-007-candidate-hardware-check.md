@@ -1,39 +1,39 @@
-# SPEC-007 - The candidate hardware check measures our API and fails closed
+# SPEC-007 - Cek perangkat kandidat mengukur API kita dan gagal tertutup
 
-Audit items: R-14
-Status: accepted
+Temuan audit: R-14
+Status: diterima
 
-## Problem
-Before an interview starts, the candidate's browser measures ping, download and upload. It called third-party
-hosts (a search engine, two CDNs, two echo services), which the production Content-Security-Policy blocks, so in the
-default production configuration every candidate failed the check and could not start. When a measurement failed it
-also substituted a plausible number: the upload fallback (0.5 MB/s = 4 Mbps) equals the minimum, so an unreachable
-server could still pass.
+## Masalah
+Sebelum wawancara dimulai, browser kandidat mengukur ping, download, dan upload. Pengukuran itu memanggil host
+pihak ketiga (sebuah mesin pencari, dua CDN, dua layanan echo), yang diblokir oleh Content-Security-Policy produksi,
+sehingga pada konfigurasi produksi bawaan setiap kandidat gagal di cek ini dan tidak bisa memulai. Saat sebuah
+pengukuran gagal, kode juga mengganti hasilnya dengan angka yang tampak wajar: nilai cadangan upload (0,5 MB/s =
+4 Mbps) sama dengan batas minimum, sehingga server yang tidak terjangkau tetap bisa lolos.
 
-## Rules
-1. Ping, download and upload are measured against the API the interview audio uses (`/health`, `GET /speed_test`, `POST /speed_test`). Each URL can be overridden by configuration. No request goes to a host the CSP does not allow.
-2. A measurement that cannot be taken (network error, non-2xx answer) counts as failed: download 0, upload 0, ping 999. No fallback value is ever invented.
-3. `GET /speed_test?bytes=N` returns N bytes of zeros, defaults to 500 000, is capped at 2 000 000, needs no login, and is rate limited to 30 requests a minute per IP.
+## Aturan
+1. Ping, download, dan upload diukur terhadap API yang dipakai audio wawancara (`/health`, `GET /speed_test`, `POST /speed_test`). Setiap URL bisa ditimpa lewat konfigurasi. Tidak ada request ke host yang tidak diizinkan CSP.
+2. Pengukuran yang tidak bisa dilakukan (error jaringan, jawaban non-2xx) dihitung gagal: download 0, upload 0, ping 999. Tidak pernah ada nilai cadangan yang dikarang.
+3. `GET /speed_test?bytes=N` mengembalikan N byte nol, bawaan 500 000, dibatasi 2 000 000, tanpa login, dan dibatasi 30 request per menit per IP.
 
-## Acceptance criteria
-Given the API base URL is https://api.example.test/api/v1
-When the hardware check runs
-Then every request goes to that origin and no request goes to any other host.
+## Kriteria penerimaan
+Given URL dasar API adalah https://api.example.test/api/v1
+When cek perangkat berjalan
+Then setiap request menuju origin itu dan tidak ada request ke host lain.
 
-Given the browser cannot reach the API (blocked or offline)
-When the hardware check runs
-Then the result is not passed, with download 0 and upload 0.
+Given browser tidak bisa menjangkau API (diblokir atau offline)
+When cek perangkat berjalan
+Then hasilnya tidak lolos, dengan download 0 dan upload 0.
 
-Given the API answers the speed test with an error status
-When the hardware check runs
-Then the result is not passed.
+Given API menjawab speed test dengan status error
+When cek perangkat berjalan
+Then hasilnya tidak lolos.
 
-Given a request for 999 999 999 bytes
-When the download sink answers
-Then it returns exactly 2 000 000 bytes.
+Given sebuah request untuk 999 999 999 byte
+When sink download menjawab
+Then ia mengembalikan tepat 2 000 000 byte.
 
-## Out of scope
-Measuring the candidate's microphone or camera quality; changing the minimum speeds.
+## Di luar cakupan
+Mengukur kualitas mikrofon atau kamera kandidat; mengubah kecepatan minimum.
 
-## Checks
-web/src/utils/internetSpeedTest.test.ts, api/spec/requests/api/v1/auth_spec.rb (speed_test operations)
+## Pemeriksa
+web/src/utils/internetSpeedTest.test.ts, api/spec/requests/api/v1/auth_spec.rb (operasi speed_test)
